@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@theme {
+  --animate-bg-to-white: bgToWhite 0.8s ease-out 1s forwards;
+  --animate-fade-out: fadeOut 0.8s ease-out 1s forwards;
+  --animate-fade-in: fadeIn 0.8s ease-out 1s forwards;
+}
+
+@keyframes bgToWhite {
+  0% {
+    background-color: #e8601a;
+  }
+  100% {
+    background-color: #ffffff;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+html,
+body,
+#root {
+  width: 100%;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+@keyframes fade-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-scale-in {
+  animation: fade-scale-in 1000ms ease-out forwards;
+}
+
+/* Phase 1: Roll circles into center */
+@keyframes rollInCenter {
+  0% {
+    transform: scale(0.3) rotate(-180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Phase 2: Split to four cardinal directions */
+@keyframes splitTop {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes splitRight {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120vw) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes splitBottom {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes splitLeft {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-120vw) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Logo Animations */
+@keyframes logoAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes logoDisappear {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Animation Utility Classes */
+.animate-roll-in {
+  animation: rollInCenter 1200ms ease-out forwards;
+}
+
+.animate-split-top {
+  animation: splitTop 1500ms ease-in-out forwards;
+}
+.animate-split-right {
+  animation: splitRight 1500ms ease-in-out forwards;
+}
+.animate-split-bottom {
+  animation: splitBottom 1500ms ease-in-out forwards;
+}
+.animate-split-left {
+  animation: splitLeft 1500ms ease-in-out forwards;
+}
+
+.animate-logo-appear {
+  animation: logoAppear 1200ms ease-out forwards;
+}
+.animate-logo-disappear {
+  animation: logoDisappear 1000ms ease-in forwards;
+}

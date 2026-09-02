@@ -1,0 +1,99 @@
+import back from "../../assets/back.svg";
+import mail from "../../assets/mail.svg";
+import boxx from "../../assets/boxx.svg";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+const Verify = () => {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  return (
+    <div className="w-full min-h-dvh flex flex-col justify-between px-4 sm:px-6 py-6 max-w-md mx-auto">
+      {/* Main Content Area */}
+      <div className="flex flex-col items-center w-full">
+        {/* Top Header Navigation */}
+        <div className="flex items-center w-full gap-4 mt-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-1 focus:outline-none rounded-lg active:bg-gray-100 transition"
+            aria-label="Go back"
+          >
+            <img
+              src={back}
+              alt="Back"
+              className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
+            />
+          </button>
+
+          <h1 className="font-semibold text-lg sm:text-xl text-[#333333]">
+            Verify Phone Number
+          </h1>
+        </div>
+
+        {/* Mail Icon & Text Instructions */}
+        <div className="flex flex-col items-center justify-center mt-6 sm:mt-10 text-center w-full">
+          <img
+            src={mail}
+            alt="Mail icon"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+          />
+          <p className="text-xs sm:text-sm text-[#333333] px-2 mt-4 leading-relaxed max-w-[280px] sm:max-w-xs">
+            Enter the 6-digit code sent to +234 8******* via{" "}
+            <span className="text-[#FF6B35] font-medium">SMS</span> and{" "}
+            <span className="text-[#FF6B35] font-medium">WhatsApp</span>
+          </p>
+        </div>
+
+        {/* Verification Code Input Container */}
+        <div className="flex flex-col items-center justify-center mt-8 sm:mt-12 w-full">
+          <p className="font-normal text-xs sm:text-sm text-[#757575] mb-3">
+            Enter Verification Code
+          </p>
+
+          {/* Code Input Boxes - Scaled with Flexbox */}
+          <div className="flex justify-between items-center gap-1.5 sm:gap-2.5 w-full max-w-[320px]">
+            {[...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className="flex-1 max-w-[48px] aspect-square flex items-center justify-center"
+              >
+                <img
+                  src={boxx}
+                  alt="code input box"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="w-full max-w-[320px] sm:max-w-full mt-8 sm:mt-10">
+          <button
+            type="submit"
+            onClick={() => navigate("/welcome")}
+            disabled={loading}
+            className="w-full py-3.5 px-4 text-[#ffffff] bg-[#FF6B35] hover:bg-[#d44e0a] font-medium text-xs sm:text-sm rounded-[10px] transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? "Please wait..." : "Verify"}
+          </button>
+        </div>
+
+        {/* Resend Timer Section */}
+        <div className="flex flex-col items-center justify-center mt-6 text-center">
+          <p className="font-normal text-xs sm:text-sm text-[#757575]">
+            Didn’t receive the code?
+          </p>
+          <p className="font-normal text-xs sm:text-sm text-[#757575] mt-1">
+            Resend available in{" "}
+            <span className="text-[#FF6B35] font-medium">58s</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Verify;
