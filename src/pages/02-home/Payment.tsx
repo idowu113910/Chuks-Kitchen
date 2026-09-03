@@ -9,11 +9,21 @@ import { useNavigate } from "react-router-dom";
 import { BsPatchCheckFill, BsPatchCheck } from "react-icons/bs";
 
 const Payment = () => {
-  const [selectedPayment, setSelectedPayment] = useState(1);
+  const [selectedPayment, setSelectedPayment] = useState<number>(() => {
+    const saved = sessionStorage.getItem("selectedPayment");
+    return saved ? JSON.parse(saved) : 1;
+  });
+
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cvv, setCvv] = useState("");
-  const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
+
+  const [isPaymentSuccessful, setIsPaymentSuccessful] = useState<boolean>(
+    () => {
+      return sessionStorage.getItem("isPaymentSuccessful") === "true";
+    },
+  );
+
   const [isChecked] = useState(false);
 
   const navigate = useNavigate();
@@ -24,13 +34,25 @@ const Payment = () => {
     { id: 3, label: "USSD", icon: BsPhone, clickable: false },
   ];
 
-  const [isConfirmingPayment, setIsConfirmingPayment] = useState(() => {
-    return sessionStorage.getItem("isConfirmingPayment") === "true";
-  });
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState<boolean>(
+    () => {
+      return sessionStorage.getItem("isConfirmingPayment") === "true";
+    },
+  );
+
+  const updateSelectedPayment = (id: number) => {
+    setSelectedPayment(id);
+    sessionStorage.setItem("selectedPayment", JSON.stringify(id));
+  };
 
   const updateIsConfirmingPayment = (value: boolean) => {
     setIsConfirmingPayment(value);
     sessionStorage.setItem("isConfirmingPayment", String(value));
+  };
+
+  const updateIsPaymentSuccessful = (value: boolean) => {
+    setIsPaymentSuccessful(value);
+    sessionStorage.setItem("isPaymentSuccessful", String(value));
   };
 
   // Card number: digits only, formatted in groups of 4, max 16 digits
@@ -56,12 +78,13 @@ const Payment = () => {
     setCvv(digitsOnly);
   };
 
-
   // Clears any leftover view flags from session storage so Home loads on the main screen
   const handleGoHome = () => {
     sessionStorage.removeItem("addToCart");
     sessionStorage.removeItem("showMealDetail");
     sessionStorage.removeItem("isConfirmingPayment");
+    sessionStorage.removeItem("isPaymentSuccessful");
+    sessionStorage.removeItem("selectedPayment");
     navigate("/home", { replace: true, state: {} });
   };
 
@@ -201,7 +224,7 @@ const Payment = () => {
           type="button"
           disabled={!isFormValid}
           onClick={() => {
-            setIsPaymentSuccessful(true);
+            updateIsPaymentSuccessful(true);
           }}
           className={`w-full max-w-87.9 py-3.5 px-4 mx-auto flex items-center justify-center gap-2 font-semibold text-[12px] rounded-[10px] mt-10 transition ${
             isFormValid
@@ -246,7 +269,9 @@ const Payment = () => {
               key={method.id}
               type="button"
               disabled={!method.clickable}
-              onClick={() => method.clickable && setSelectedPayment(method.id)}
+              onClick={() =>
+                method.clickable && updateSelectedPayment(method.id)
+              }
               className={`flex items-center justify-between w-full ${
                 index === 0 ? "" : "mt-8"
               } ${
@@ -281,7 +306,7 @@ const Payment = () => {
 
       <button
         type="button"
-        onClick={() => setIsConfirmingPayment(true)}
+        onClick={() => updateIsConfirmingPayment(true)}
         className="w-full max-w-87.25 py-3.5 px-4 mt-6 text-white mx-auto bg-[#FF6B35] font-semibold text-sm rounded-[10px] 
   shadow-sm active:scale-[0.98] cursor-pointer transition"
       >

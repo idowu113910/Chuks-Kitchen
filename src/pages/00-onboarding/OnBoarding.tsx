@@ -16,24 +16,70 @@ interface Slide {
   description: string;
 }
 
+// Detects whether this page load was an actual browser REFRESH
+// (in which case we should restore where the user was) vs. a fresh
+// in-app navigation, in which case the splash intro should play
+// from the beginning as intended.
+const isPageReload = () => {
+  const navEntries = performance.getEntriesByType(
+    "navigation",
+  ) as PerformanceNavigationTiming[];
+  if (navEntries.length > 0) {
+    return navEntries[0].type === "reload";
+  }
+  return false;
+};
+
 const OnBoarding = (): JSX.Element => {
+  // If this is a refresh AND the splash had already finished before,
+  // skip straight to "done" instead of replaying the dot/expand intro.
   const [splashPhase, setSplashPhase] = useState<"dot" | "expand" | "done">(
-    "dot",
+    () => {
+      const alreadyDone =
+        isPageReload() &&
+        sessionStorage.getItem("onboardingSplashDone") === "true";
+      return alreadyDone ? "done" : "dot";
+    },
   );
-  const [currentScreen, setCurrentScreen] = useState<number>(0);
+
+  // Restore which slide the user was on, but only on an actual refresh.
+  const [currentScreen, setCurrentScreen] = useState<number>(() => {
+    if (!isPageReload()) return 0;
+    const saved = sessionStorage.getItem("onboardingScreen");
+    return saved ? Number(saved) : 0;
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Skip the timed splash sequence entirely if we've already restored
+    // straight into "done" from sessionStorage.
+    if (
+      splashPhase === "done" &&
+      sessionStorage.getItem("onboardingSplashDone") === "true"
+    ) {
+      return;
+    }
+
     const idleTimer = setTimeout(() => setSplashPhase("dot"), 1200);
     const expandTimer = setTimeout(() => setSplashPhase("expand"), 1600);
-    const doneTimer = setTimeout(() => setSplashPhase("done"), 4300);
+    const doneTimer = setTimeout(() => {
+      setSplashPhase("done");
+      sessionStorage.setItem("onboardingSplashDone", "true");
+    }, 4300);
 
     return () => {
       clearTimeout(idleTimer);
       clearTimeout(expandTimer);
       clearTimeout(doneTimer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep sessionStorage in sync whenever the current slide changes.
+  useEffect(() => {
+    sessionStorage.setItem("onboardingScreen", String(currentScreen));
+  }, [currentScreen]);
 
   const slides: Slide[] = [
     {
@@ -63,6 +109,8 @@ const OnBoarding = (): JSX.Element => {
     if (currentScreen < slides.length - 1) {
       setCurrentScreen((prev) => prev + 1);
     } else {
+      sessionStorage.removeItem("onboardingSplashDone");
+      sessionStorage.removeItem("onboardingScreen");
       navigate("/login");
     }
   };
@@ -201,7 +249,11 @@ const OnBoarding = (): JSX.Element => {
       {/* --- BOTTOM CONTROLS --- */}
       <div className="w-full px-6 pb-6 pt-2 flex items-center justify-between shrink-0 max-w-125 mx-auto z-10">
         <button
-          onClick={() => navigate("/home")}
+          onClick={() => {
+            sessionStorage.removeItem("onboardingSplashDone");
+            sessionStorage.removeItem("onboardingScreen");
+            navigate("/home");
+          }}
           className="font-medium text-[15px] text-[#9CA3AF] px-2 py-1.5 hover:text-gray-700 active:scale-95 transition-all cursor-pointer"
         >
           SKIP
