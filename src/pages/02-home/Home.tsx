@@ -508,6 +508,11 @@ const Home = () => {
 
         {/* Checkout Action Button */}
         <div className="w-full mt-8 sm:mt-12">
+          {networkError && (
+            <p className="text-center text-red-500 text-xs mb-2">
+              {networkError}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => setShowCheckoutSheet(true)}

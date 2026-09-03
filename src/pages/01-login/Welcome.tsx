@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import chuks from "../../assets/chuks 2.svg";
-import { useState } from "react";
+
 
 const Welcome = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-1.5 -mt-2">

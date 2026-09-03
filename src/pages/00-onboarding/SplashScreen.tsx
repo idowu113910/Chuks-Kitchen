@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import chuksLogo from "../../assets/chuks 2.svg"; // Adjust asset path if needed
 
 interface SplashScreenProps {

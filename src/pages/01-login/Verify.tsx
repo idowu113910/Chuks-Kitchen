@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Verify = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -39,7 +39,7 @@ const Verify = () => {
             alt="Mail icon"
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
           />
-          <p className="text-xs sm:text-sm text-[#333333] px-2 mt-4 leading-relaxed max-w-[280px] sm:max-w-xs">
+          <p className="text-xs sm:text-sm text-[#333333] px-2 mt-4 leading-relaxed max-w-70 sm:max-w-xs">
             Enter the 6-digit code sent to +234 8******* via{" "}
             <span className="text-[#FF6B35] font-medium">SMS</span> and{" "}
             <span className="text-[#FF6B35] font-medium">WhatsApp</span>
@@ -57,7 +57,7 @@ const Verify = () => {
             {[...Array(6)].map((_, index) => (
               <div
                 key={index}
-                className="flex-1 max-w-[48px] aspect-square flex items-center justify-center"
+                className="flex-1 max-w-12 aspect-square flex items-center justify-center"
               >
                 <img
                   src={boxx}
@@ -75,7 +75,8 @@ const Verify = () => {
             type="submit"
             onClick={() => navigate("/welcome")}
             disabled={loading}
-            className="w-full py-3.5 px-4 text-[#ffffff] bg-[#FF6B35] hover:bg-[#d44e0a] font-medium text-xs sm:text-sm rounded-[10px] transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-3.5 px-4 text-[#ffffff] bg-[#FF6B35] hover:bg-[#d44e0a] font-medium text-xs sm:text-sm rounded-[10px] 
+            transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Please wait..." : "Verify"}
           </button>

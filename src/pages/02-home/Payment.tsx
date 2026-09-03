@@ -17,7 +17,6 @@ const Payment = () => {
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
   const [isChecked] = useState(false);
 
-  const location = useLocation();
   const navigate = useNavigate();
 
   const paymentMethods = [
@@ -67,7 +66,8 @@ const Payment = () => {
   const handleGoHome = () => {
     sessionStorage.removeItem("addToCart");
     sessionStorage.removeItem("showMealDetail");
-    navigate("/home");
+    sessionStorage.removeItem("isConfirmingPayment");
+    navigate("/home", { replace: true, state: {} });
   };
 
   const total = localStorage.getItem("orderTotal") || undefined;
@@ -288,7 +288,7 @@ const Payment = () => {
         type="button"
         onClick={() => setIsConfirmingPayment(true)}
         className="w-full max-w-87.25 py-3.5 px-4 mt-6 text-white mx-auto bg-[#FF6B35] font-semibold text-sm rounded-[10px] 
-        shadow-sm active:scale-[0.98] cursor-pointer transition"
+  shadow-sm active:scale-[0.98] cursor-pointer transition"
       >
         Continue
       </button>
