@@ -36,8 +36,7 @@ const OnBoarding = (): JSX.Element => {
   const [splashPhase, setSplashPhase] = useState<"dot" | "expand" | "done">(
     () => {
       const alreadyDone =
-        isPageReload() &&
-        sessionStorage.getItem("onboardingSplashDone") === "true";
+        isPageReload() && sessionStorage.getItem("onboardingSplashDone") === "true";
       return alreadyDone ? "done" : "dot";
     },
   );
@@ -54,10 +53,7 @@ const OnBoarding = (): JSX.Element => {
   useEffect(() => {
     // Skip the timed splash sequence entirely if we've already restored
     // straight into "done" from sessionStorage.
-    if (
-      splashPhase === "done" &&
-      sessionStorage.getItem("onboardingSplashDone") === "true"
-    ) {
+    if (splashPhase === "done" && sessionStorage.getItem("onboardingSplashDone") === "true") {
       return;
     }
 

@@ -91,7 +91,7 @@ const SignUp: FC = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
-  const [loading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Country Picker State
@@ -132,7 +132,24 @@ const SignUp: FC = (): JSX.Element => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isFormValid) return;
+
+    setLoading(true);
+
+    // Simulate account creation before navigating
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/home");
+    }, 2000);
   };
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen bg-white flex items-center justify-center fixed inset-0 z-50">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#FF6B35] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-8">
