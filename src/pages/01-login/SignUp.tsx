@@ -1,12 +1,28 @@
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  type FC,
+  type FormEvent,
+  type ChangeEvent,
+  type JSX,
+} from "react";
 import chuks from "../../assets/chukss.svg";
 import flg from "../../assets/green.svg";
 import drpdown from "../../assets/dropdown.svg";
-import { useState, useRef, useEffect } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
+interface Country {
+  code: string;
+  flag: string;
+  name: string;
+  format: string;
+  placeholder: string;
+}
+
 // Country list with format patterns (X = digit)
-const countries = [
+const countries: Country[] = [
   {
     code: "+234",
     flag: flg,
@@ -51,7 +67,7 @@ const countries = [
   },
 ];
 
-const formatPhoneNumber = (value, pattern) => {
+const formatPhoneNumber = (value: string, pattern: string): string => {
   const digits = value.replace(/\D/g, "");
   let formatted = "";
   let digitIndex = 0;
@@ -68,24 +84,28 @@ const formatPhoneNumber = (value, pattern) => {
   return formatted;
 };
 
-const SignUp = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmpassword, setConfirmpassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+const SignUp: FC = (): JSX.Element => {
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmpassword, setConfirmpassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+  const [loading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Country Picker State
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -93,12 +113,12 @@ const SignUp = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handlePhoneChange = (e) => {
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value, selectedCountry.format);
     setPhoneNumber(formatted);
   };
 
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     setPhoneNumber(formatPhoneNumber(phoneNumber, country.format));
     setIsDropdownOpen(false);
@@ -109,6 +129,10 @@ const SignUp = () => {
     confirmpassword.trim() !== "" &&
     password === confirmpassword &&
     phoneNumber.trim() !== "";
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-8">
@@ -130,7 +154,7 @@ const SignUp = () => {
         {/* Form Container */}
         <form
           className="w-full mt-6 flex flex-col items-center"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleSubmit}
         >
           {/* First Name & Last Name */}
           <div className="flex gap-4 sm:gap-5.25 w-full justify-center">
