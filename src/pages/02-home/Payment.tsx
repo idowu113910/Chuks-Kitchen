@@ -67,8 +67,7 @@ const Payment = () => {
   const handleGoHome = () => {
     sessionStorage.removeItem("addToCart");
     sessionStorage.removeItem("showMealDetail");
-    sessionStorage.removeItem("isConfirmingPayment");
-    navigate("/home", { replace: true, state: {} });
+    navigate("/home");
   };
 
   const total = localStorage.getItem("orderTotal") || undefined;

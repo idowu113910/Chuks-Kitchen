@@ -39,8 +39,14 @@ import { useLocation } from "react-router-dom";
 
 // Detects whether this page load was an actual browser REFRESH
 // (in which case we should restore sessionStorage state) vs. a fresh
-// in-app navigation (e.g. clicking "Home" in the footer), in which case
-// we should reset to the real home screen instead of restoring old state.
+// in-app navigation (e.g. clicking "Home" in the footer, or the
+// "Home"/"Track Order" buttons on the Payment success screen), in
+// which case we should reset to the real home screen instead of
+// restoring old state.
+//
+// React Router's client-side navigate() does NOT create a new
+// "reload"-type navigation entry — only an actual F5 / browser
+// refresh does. So this check is reliable for distinguishing the two.
 const isPageReload = () => {
   const navEntries = performance.getEntriesByType(
     "navigation",
