@@ -36,7 +36,8 @@ const OnBoarding = (): JSX.Element => {
   const [splashPhase, setSplashPhase] = useState<"dot" | "expand" | "done">(
     () => {
       const alreadyDone =
-        isPageReload() && sessionStorage.getItem("onboardingSplashDone") === "true";
+        isPageReload() &&
+        sessionStorage.getItem("onboardingSplashDone") === "true";
       return alreadyDone ? "done" : "dot";
     },
   );
@@ -53,7 +54,10 @@ const OnBoarding = (): JSX.Element => {
   useEffect(() => {
     // Skip the timed splash sequence entirely if we've already restored
     // straight into "done" from sessionStorage.
-    if (splashPhase === "done" && sessionStorage.getItem("onboardingSplashDone") === "true") {
+    if (
+      splashPhase === "done" &&
+      sessionStorage.getItem("onboardingSplashDone") === "true"
+    ) {
       return;
     }
 
@@ -88,16 +92,16 @@ const OnBoarding = (): JSX.Element => {
     {
       curve: curve2,
       image: qfd,
-      title: "Pay your Way",
+      title: "Quick and Fast Delivery",
       description:
-        "Pay with card, transfer or cash on delivery. Safe, secure and convenient for you without stress",
+        "Track your order in real time and get your food delivered to your doorstep with zero stress",
     },
     {
       curve: curve3,
       image: pwy,
-      title: "Quick and Fast Delivery",
+      title: "Pay your Way",
       description:
-        "Track your order in real time and get your food delivered to your doorstep with zero stress",
+        "Pay with card, transfer or cash on delivery. Safe, secure and convenient for you without stress  ",
     },
   ];
 

@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import chuks from "../../assets/chuks 2.svg";
 
-
 const Welcome = () => {
   const navigate = useNavigate();
 

@@ -1,13 +1,10 @@
-import  { useState, useEffect } from "react";
-import chuksLogo from "../../assets/chuks 2.svg"; // Adjust asset path if needed
+import React, { useState, useEffect } from "react";
+import chuksLogo from "../../assets/chuks 2.svg"; // Adjust asset path
+import OnboardingScreen from "./OnBoarding";
 
-interface SplashScreenProps {
-  onFinish?: () => void;
-}
-
-export default function SplashScreen({ onFinish }: SplashScreenProps) {
-  // Animation phases: 'splitting' | 'logo-out'
-  const [phase, setPhase] = useState<"splitting" | "logo-out">("splitting");
+export default function AppFlow() {
+  // Animation phases: 'splitting' | 'logo-out' | 'onboarding'
+  const [phase, setPhase] = useState("splitting");
 
   useEffect(() => {
     // 1. Circles split away and logo displays (0ms -> 2300ms)
@@ -15,20 +12,24 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       setPhase("logo-out");
     }, 2300);
 
-    // 2. Logo fades out and signals parent to finish splash transition (2300ms -> 3500ms)
+    // 2. Logo fades out and transitions immediately to Onboarding (2300ms -> 3500ms)
     const t2 = setTimeout(() => {
-      onFinish?.();
+      setPhase("onboarding");
     }, 3500);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [onFinish]);
+  }, []);
+
+  if (phase === "onboarding") {
+    return <OnboardingScreen />;
+  }
 
   return (
-    <div className="fixed inset-0 w-full h-dvh bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50 select-none">
-      {/* --- CIRCLE GROUPS (Only render during initial split) --- */}
+    <div className="fixed inset-0 w-full h-dvh bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50">
+      {/* --- CIRCLE GROUPS (Only render during the initial split) --- */}
       {phase === "splitting" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           {/* Top Direction Group */}
@@ -53,9 +54,9 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         </div>
       )}
 
-      {/* --- CHUKS KITCHEN LOGO --- */}
+      {/* --- CHUKS KITCHEN LOGO (Fades out directly) --- */}
       <div
-        className={`relative z-10 flex flex-col items-center justify-center transition-opacity duration-500 ${
+        className={`relative z-10 flex flex-col items-center justify-center ${
           phase === "splitting"
             ? "animate-logo-appear"
             : "animate-logo-disappear"
