@@ -5,7 +5,7 @@ import colored from "../../assets/colored circle.svg";
 import { BsPhone } from "react-icons/bs";
 import { HiOutlineBuildingLibrary } from "react-icons/hi2";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { BsPatchCheckFill, BsPatchCheck } from "react-icons/bs";
 
 const Payment = () => {
@@ -13,7 +13,6 @@ const Payment = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cvv, setCvv] = useState("");
-  const [, setIsOrderConfirmed] = useState(false);
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
   const [isChecked] = useState(false);
 
@@ -57,10 +56,6 @@ const Payment = () => {
     setCvv(digitsOnly);
   };
 
-  const handlePayment = () => {
-    updateIsConfirmingPayment(false);
-    setIsOrderConfirmed(true);
-  };
 
   // Clears any leftover view flags from session storage so Home loads on the main screen
   const handleGoHome = () => {
