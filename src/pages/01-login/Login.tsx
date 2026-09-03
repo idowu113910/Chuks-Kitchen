@@ -1,15 +1,23 @@
+import React, { useState, useRef, useEffect } from "react";
 import chuks from "../../assets/chukss.svg";
 import flg from "../../assets/green.svg";
 import drpdown from "../../assets/dropdown.svg";
 import { HiOutlineLockClosed } from "react-icons/hi2";
-import { useState, useRef, useEffect } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { FaApple } from "react-icons/fa";
 import g from "../../assets/google.svg";
 import { useNavigate } from "react-router-dom";
 
+interface Country {
+  code: string;
+  flag: string;
+  name: string;
+  format: string;
+  placeholder: string;
+}
+
 // Country list with format patterns (X = digit)
-const countries = [
+const countries: Country[] = [
   {
     code: "+234",
     flag: flg,
@@ -55,7 +63,7 @@ const countries = [
 ];
 
 // Helper to format input string based on pattern
-const formatPhoneNumber = (value, pattern) => {
+const formatPhoneNumber = (value: string, pattern: string): string => {
   const digits = value.replace(/\D/g, "");
   let formatted = "";
   let digitIndex = 0;
@@ -73,18 +81,17 @@ const formatPhoneNumber = (value, pattern) => {
 };
 
 const Login = () => {
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
   // Set default selected country with complete properties
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
 
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
 
   // Calculate required digits by counting 'X' instances in format
   const requiredLength =
@@ -97,7 +104,7 @@ const Login = () => {
   const isFormValid = currentDigits.length === requiredLength;
 
   // Handle phone input change with dynamic masking
-  const handlePhoneChange = (e) => {
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/\D/g, "");
     if (rawDigits.length <= requiredLength) {
       const formatted = formatPhoneNumber(rawDigits, selectedCountry.format);
@@ -106,9 +113,9 @@ const Login = () => {
   };
 
   // Navigate to home screen on submit after displaying continuous loading screen
-  const handleContinue = (e) => {
+  const handleContinue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isFormValid && !loading && !isNavigating) {
+    if (isFormValid && !isNavigating) {
       setIsNavigating(true);
       setTimeout(() => {
         navigate("/home");
@@ -117,13 +124,16 @@ const Login = () => {
   };
 
   // Country Picker State
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -132,7 +142,7 @@ const Login = () => {
   }, []);
 
   // Reformat existing digits when changing selected country
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     setPhoneNumber(formatPhoneNumber(currentDigits, country.format));
     setIsDropdownOpen(false);
@@ -305,14 +315,14 @@ const Login = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading || !isFormValid}
+            disabled={!isFormValid}
             className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] transition ${
               isFormValid
                 ? "bg-[#FF6B35] hover:bg-[#d44e0a]"
                 : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
             }`}
           >
-            {loading ? "Signing in..." : "Continue"}
+            Continue
           </button>
         </form>
 
