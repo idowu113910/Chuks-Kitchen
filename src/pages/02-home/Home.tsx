@@ -36,6 +36,7 @@ import jug from "../../assets/jug.svg";
 import { IoIosArrowDown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { MdOutlineShoppingBag } from "react-icons/md";
 
 // Detects whether this page load was an actual browser REFRESH
 // (in which case we should restore sessionStorage state) vs. a fresh
@@ -805,11 +806,9 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
             className="relative p-1 focus:outline-none shrink-0 cursor-pointer active:opacity-75 transition"
             aria-label="Shopping Cart"
           >
-            <img
-              src={cart}
-              alt="Cart"
-              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-            />
+
+            <MdOutlineShoppingBag  className="w-7 h-7 object-contain text-[#757575]" />
+           
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#FF6B35] text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
                 {cartCount}

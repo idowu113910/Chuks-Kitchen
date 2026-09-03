@@ -83,15 +83,6 @@ const Verify = () => {
         </div>
 
         {/* Resend Timer Section */}
-        <div className="flex flex-col items-center justify-center mt-6 text-center">
-          <p className="font-normal text-xs sm:text-sm text-[#757575]">
-            Didn’t receive the code?
-          </p>
-          <p className="font-normal text-xs sm:text-sm text-[#757575] mt-1">
-            Resend available in{" "}
-            <span className="text-[#FF6B35] font-medium">58s</span>
-          </p>
-        </div>
       </div>
     </div>
   );
