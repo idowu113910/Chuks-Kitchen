@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import Footer from "./layout/Footer";
 import SplashScreen from "./pages/00-onboarding/SplashScreen";
 import OnBoarding from "./pages/00-onboarding/OnBoarding";
@@ -7,7 +7,6 @@ import Login from "./pages/01-login/Login";
 import SignUp from "./pages/01-login/SignUp";
 import Home from "./pages/02-home/Home";
 import Payment from "./pages/02-home/Payment";
-import type { JSX } from "react";
 import Verify from "./pages/01-login/Verify";
 import Welcome from "./pages/01-login/Welcome";
 import Map from "./pages/01-login/Map";
@@ -24,7 +23,7 @@ const RootLayout = (): JSX.Element => {
   );
 };
 
-// ✅ Splash wraps the OnBoarding page
+// Splash Screen wrapper for Onboarding
 const HomeWithSplash = (): JSX.Element => {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -78,7 +77,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-function App() {
+function App(): JSX.Element {
   return (
     <FooterProvider>
       <RouterProvider router={router} />
