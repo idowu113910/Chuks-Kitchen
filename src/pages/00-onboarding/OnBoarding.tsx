@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import ois from "../../assets/OIS.svg";
 import pwy from "../../assets/PYW.svg";
 import qfd from "../../assets/QFD.svg";
@@ -9,9 +9,18 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoIosArrowBack } from "react-icons/io";
 
-const OnBoarding = () => {
-  const [splashPhase, setSplashPhase] = useState("dot");
-  const [currentScreen, setCurrentScreen] = useState(0);
+interface Slide {
+  curve: string;
+  image: string;
+  title: string;
+  description: string;
+}
+
+const OnBoarding = (): JSX.Element => {
+  const [splashPhase, setSplashPhase] = useState<"dot" | "expand" | "done">(
+    "dot",
+  );
+  const [currentScreen, setCurrentScreen] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +35,7 @@ const OnBoarding = () => {
     };
   }, []);
 
-  const slides = [
+  const slides: Slide[] = [
     {
       curve: curve1,
       image: ois,
@@ -117,7 +126,7 @@ const OnBoarding = () => {
             onClick={handleBack}
             aria-label="Go back"
             className="absolute top-6 left-5 z-20 text-black text-2xl p-2 rounded-full hover:bg-black/5
-             active:scale-90 transition-transform cursor-pointer"
+              active:scale-90 transition-transform cursor-pointer"
           >
             <IoIosArrowBack />
           </button>
@@ -201,7 +210,7 @@ const OnBoarding = () => {
         <button
           onClick={handleNext}
           className="w-20 h-10 rounded-lg bg-[#FF6B35] text-white text-[14px] font-semibold flex items-center
-           justify-center shadow-md active:scale-95 transition-transform cursor-pointer"
+            justify-center shadow-md active:scale-95 transition-transform cursor-pointer"
         >
           {currentScreen === slides.length - 1 ? "START" : "NEXT"}
         </button>
