@@ -1,12 +1,49 @@
 import back from "../../assets/back.svg";
 import mail from "../../assets/mail.svg";
 import boxx from "../../assets/boxx.svg";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Verify = () => {
   const [loading] = useState(false);
+  const [timer, setTimer] = useState(59);
+  const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (timer === 0) return;
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const otp = otpValues.join("");
+  const isOtpFilled = otp.length === 6;
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    const newOtp = [...otpValues];
+    newOtp[index] = value.slice(-1);
+    setOtpValues(newOtp);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerify = () => {
+    if (!isOtpFilled) return;
+    navigate("/welcome");
+  };
 
   return (
     <div className="w-full min-h-dvh flex flex-col justify-between px-4 sm:px-6 py-6 max-w-md mx-auto">
@@ -52,17 +89,29 @@ const Verify = () => {
             Enter Verification Code
           </p>
 
-          {/* Code Input Boxes - Scaled with Flexbox */}
+          {/* Code Input Boxes - real inputs styled with the box image as background */}
           <div className="flex justify-between items-center gap-1.5 sm:gap-2.5 w-full max-w-[320px]">
-            {[...Array(6)].map((_, index) => (
+            {otpValues.map((val, index) => (
               <div
                 key={index}
-                className="flex-1 max-w-12 aspect-square flex items-center justify-center"
+                className="flex-1 max-w-12 aspect-square relative"
               >
                 <img
                   src={boxx}
-                  alt="code input box"
-                  className="w-full h-full object-contain"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                />
+                <input
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={val}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  className="relative z-10 w-full h-full bg-transparent text-center text-lg font-semibold text-[#333333] outline-none caret-[#FF6B35]"
                 />
               </div>
             ))}
@@ -73,16 +122,33 @@ const Verify = () => {
         <div className="w-full max-w-[320px] sm:max-w-full mt-8 sm:mt-10">
           <button
             type="submit"
-            onClick={() => navigate("/welcome")}
-            disabled={loading}
+            onClick={handleVerify}
+            disabled={loading || !isOtpFilled}
             className="w-full py-3.5 px-4 text-[#ffffff] bg-[#FF6B35] hover:bg-[#d44e0a] font-medium text-xs sm:text-sm rounded-[10px] 
-            transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50"
+            transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Please wait..." : "Verify"}
           </button>
         </div>
 
         {/* Resend Timer Section */}
+        <div className="flex justify-center mt-6">
+          {timer === 0 ? (
+            <p
+              onClick={() => setTimer(59)}
+              className="text-xs sm:text-sm text-[#FF6B35] cursor-pointer font-semibold"
+            >
+              Resend code
+            </p>
+          ) : (
+            <p className="font-normal text-xs sm:text-sm text-[#757575]">
+              Resend code in{" "}
+              <span className="text-xs sm:text-sm font-semibold text-[#FF6B35]">
+                00:{timer < 10 ? `0${timer}` : timer}
+              </span>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

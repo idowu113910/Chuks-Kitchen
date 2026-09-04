@@ -118,7 +118,7 @@ const Login = () => {
     if (isFormValid && !isNavigating) {
       setIsNavigating(true);
       setTimeout(() => {
-        navigate("/welcome");
+        navigate("/verify");
       }, 1500); // Simulates network transition delay before showing /home screen
     }
   };

@@ -139,7 +139,7 @@ const SignUp: FC = (): JSX.Element => {
     // Simulate account creation before navigating
     setTimeout(() => {
       setLoading(false);
-      navigate("/home");
+      navigate("/verify");
     }, 2000);
   };
 
