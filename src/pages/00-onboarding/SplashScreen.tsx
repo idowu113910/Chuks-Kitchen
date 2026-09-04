@@ -65,7 +65,7 @@ export default function AppFlow() {
         <img
           src={chuksLogo}
           alt="Chuks Kitchen"
-          className="w-[200px] h-[200px] object-contain drop-shadow-md"
+          className="w-50 h-50 object-contain drop-shadow-md"
         />
       </div>
     </div>

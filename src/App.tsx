@@ -25,14 +25,19 @@ const RootLayout = (): JSX.Element => {
 
 // Splash Screen wrapper for Onboarding
 const HomeWithSplash = (): JSX.Element => {
-  const [showSplash, setShowSplash] = useState(true);
+  // Check sessionStorage on initial render
+  const [showSplash, setShowSplash] = useState(() => {
+    return sessionStorage.getItem("splashShown") !== "true";
+  });
+
+  const handleFinish = () => {
+    sessionStorage.setItem("splashShown", "true");
+    setShowSplash(false);
+  };
 
   return (
     <>
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
-      <div className={showSplash ? "hidden" : "block"}>
-        <OnBoarding />
-      </div>
+      {showSplash ? <SplashScreen onFinish={handleFinish} /> : <OnBoarding />}
     </>
   );
 };
