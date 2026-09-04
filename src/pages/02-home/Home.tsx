@@ -1,6 +1,5 @@
 import pin from "../../assets/pin.svg";
 import drp from "../../assets/dropdown.svg";
-import cart from "../../assets/cart.svg";
 import { IoSearchSharp } from "react-icons/io5";
 import fil from "../../assets/filter.svg";
 import rice from "../../assets/rice.svg";
@@ -806,9 +805,8 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
             className="relative p-1 focus:outline-none shrink-0 cursor-pointer active:opacity-75 transition"
             aria-label="Shopping Cart"
           >
+            <MdOutlineShoppingBag className="w-7 h-7 object-contain text-[#757575]" />
 
-            <MdOutlineShoppingBag  className="w-7 h-7 object-contain text-[#757575]" />
-           
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#FF6B35] text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
                 {cartCount}
