@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Verify = () => {
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(59);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -41,12 +41,26 @@ const Verify = () => {
   };
 
   const handleVerify = () => {
-    if (!isOtpFilled) return;
-    navigate("/welcome");
+    if (!isOtpFilled || loading) return;
+
+    // 1. Trigger full-screen loading state
+    setLoading(true);
+
+    // 2. Delay navigation to simulate verification request
+    setTimeout(() => {
+      navigate("/welcome");
+    }, 1500); // Adjust duration (in ms) as needed
   };
 
   return (
-    <div className="w-full min-h-dvh flex flex-col justify-between px-4 sm:px-6 py-6 max-w-md mx-auto">
+    <div className="relative w-full min-h-dvh flex flex-col justify-between px-4 sm:px-6 py-6 max-w-md mx-auto">
+      {/* Full Screen Blank Loading State */}
+      {loading && (
+        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-gray-200 border-t-[#FF6B35] rounded-full animate-spin" />
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="flex flex-col items-center w-full">
         {/* Top Header Navigation */}
@@ -89,7 +103,7 @@ const Verify = () => {
             Enter Verification Code
           </p>
 
-          {/* Code Input Boxes - real inputs styled with the box image as background */}
+          {/* Code Input Boxes */}
           <div className="flex justify-between items-center gap-1.5 sm:gap-2.5 w-full max-w-[320px]">
             {otpValues.map((val, index) => (
               <div
@@ -127,7 +141,7 @@ const Verify = () => {
             className="w-full py-3.5 px-4 text-[#ffffff] bg-[#FF6B35] hover:bg-[#d44e0a] font-medium text-xs sm:text-sm rounded-[10px] 
             transition duration-200 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Please wait..." : "Verify"}
+            Verify
           </button>
         </div>
 
