@@ -23,7 +23,9 @@ const Welcome = () => {
         onClick={() => {
           navigate("/map");
         }}
-        className="w-full max-w-87.5 mx-auto flex text-center justify-center py-3.5 px-4 mt-6 text-[#ffffff] bg-[#FF6B35] font-medium text-[14px] rounded-[10px] transition"
+        className="w-full max-w-87.5 mx-auto flex text-center justify-center py-3.5 px-4 
+        mt-6 text-[#ffffff] bg-[#FF6B35]
+         font-medium text-[14px] rounded-[10px] transition"
       >
         Start Ordering
       </button>
