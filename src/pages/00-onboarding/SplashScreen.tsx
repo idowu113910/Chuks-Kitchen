@@ -27,7 +27,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   }, [onFinish]);
 
   return (
-    <div className="fixed inset-0 w-full h-dvh bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50">
+    <div className="fixed inset-0 w-full h-full min-h-screen min-h-[100dvh] min-h-[webkit-fill-available] bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50">
       {phase === "splitting" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="animate-split-top">
