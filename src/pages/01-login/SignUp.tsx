@@ -85,6 +85,9 @@ const formatPhoneNumber = (value: string, pattern: string): string => {
 };
 
 const SignUp: FC = (): JSX.Element => {
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmpassword, setConfirmpassword] = useState<string>("");
@@ -92,6 +95,7 @@ const SignUp: FC = (): JSX.Element => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
   // Country Picker State
@@ -125,22 +129,63 @@ const SignUp: FC = (): JSX.Element => {
   };
 
   const isFormValid =
+    firstName.trim() !== "" &&
+    lastName.trim() !== "" &&
+    email.trim() !== "" &&
+    phoneNumber.trim() !== "" &&
     password.trim() !== "" &&
     confirmpassword.trim() !== "" &&
-    password === confirmpassword &&
-    phoneNumber.trim() !== "";
+    password === confirmpassword;
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isFormValid) return;
 
     setLoading(true);
+    setErrorMessage("");
 
-    // Simulate account creation before navigating
-    setTimeout(() => {
-      setLoading(false);
+    const fullPhoneNumber = `${selectedCountry.code}${phoneNumber.replace(/\D/g, "")}`;
+
+    try {
+      const response = await fetch(
+        "https://linkedin-guy-backend.onrender.com/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            phoneNumber: fullPhoneNumber,
+            password,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Registration failed. Please try again.",
+        );
+      }
+
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
+      }
+
       navigate("/verify");
-    }, 2000);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage("An unexpected error occurred.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -168,6 +213,13 @@ const SignUp: FC = (): JSX.Element => {
           </p>
         </div>
 
+        {/* Error Alert Display */}
+        {errorMessage && (
+          <div className="w-full mt-4 p-3 bg-red-100 border border-red-400 text-red-700 text-xs rounded-[10px] text-center">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Form Container */}
         <form
           className="w-full mt-6 flex flex-col items-center"
@@ -181,7 +233,10 @@ const SignUp: FC = (): JSX.Element => {
               </h5>
               <input
                 type="text"
-                className="w-full h-12 rounded-[10px] border border-[#757575] opacity-48 mt-2 px-3 outline-none"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className="w-full h-12 rounded-[10px] border border-[#757575] opacity-100 mt-2 px-3 outline-none text-black"
               />
             </div>
 
@@ -191,9 +246,27 @@ const SignUp: FC = (): JSX.Element => {
               </h5>
               <input
                 type="text"
-                className="w-full h-12 rounded-[10px] border border-[#757575] opacity-48 mt-2 px-3 outline-none"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className="w-full h-12 rounded-[10px] border border-[#757575] opacity-100 mt-2 px-3 outline-none text-black"
               />
             </div>
+          </div>
+
+          {/* Email Address */}
+          <div className="flex flex-col gap-2 w-full mt-3">
+            <h5 className="font-medium text-[16px] text-[#333333]">
+              Email Address
+            </h5>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
+              required
+              className="w-full h-12 text-black rounded-[10px] border-[1.5px] border-[#757575] outline-none px-3"
+            />
           </div>
 
           {/* Phone Number */}
@@ -224,7 +297,9 @@ const SignUp: FC = (): JSX.Element => {
                   <img
                     src={drpdown}
                     alt="Dropdown"
-                    className={`text-[#757575] w-5 h-5 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                    className={`text-[#757575] w-5 h-5 transition-transform ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
                 <span className="text-[#333333] font-normal text-[14px]">
@@ -313,7 +388,7 @@ const SignUp: FC = (): JSX.Element => {
             disabled={loading || !isFormValid}
             className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] transition ${
               isFormValid
-                ? "bg-[#FF6B35] hover:bg-[#d44e0a]"
+                ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
                 : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
             }`}
           >
