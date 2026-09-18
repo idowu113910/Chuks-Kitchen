@@ -36,27 +36,13 @@
   }
 }
 
-html {
-  height: -webkit-fill-available;
-}
-
+html,
+body,
 #root {
-  display: grid;
-  grid-template-rows: 1fr;
-  min-height: 100%;
   width: 100%;
-  background-color: #f5f7fa;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #f5f7fa;
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  display: grid;
-  grid-template-rows: 1fr;
   font-family: "Poppins", sans-serif;
 }
 

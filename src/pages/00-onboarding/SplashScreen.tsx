@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import chuksLogo from "../../assets/chuks 2.svg";
 
+// 1. Define the props interface
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
+// 2. Add the interface type to the component props
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [phase, setPhase] = useState<"splitting" | "logo-out">("splitting");
 
@@ -14,6 +16,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     }, 2300);
 
     const t2 = setTimeout(() => {
+      // 3. Call onFinish when the animation completes
       onFinish();
     }, 3500);
 
@@ -25,7 +28,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
   return (
     <>
-      <div className="fixed inset-0 w-full h-screen h-[100dvh] min-h-[-webkit-fill-available] bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50">
+      <div className="fixed inset-0 w-full h-full min-h-screen min-h-[100dvh] min-h-[webkit-fill-available] bg-[#FFE3D6] overflow-hidden flex items-center justify-center z-50">
         {phase === "splitting" && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="animate-split-top">
