@@ -145,7 +145,7 @@ const OnBoarding = (): JSX.Element => {
   }
 
   return (
-    <div className="min-h-dvh w-full bg-white flex flex-col justify-between overflow-hidden relative select-none">
+    <div className="min-h-dvh w-full  min-h-screen min-h-[100dvh] min-h-[webkit-fill-available] bg-white flex flex-col justify-between overflow-hidden relative select-none">
       {/* --- TOP SECTION (CURVE IMAGE + BACK BUTTON + CENTERED ILLUSTRATION) --- */}
       <div className="relative w-full h-[50vh] min-h-87.5">
         {/* Curve Background Image */}
