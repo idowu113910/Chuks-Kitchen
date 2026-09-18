@@ -80,6 +80,10 @@ const formatPhoneNumber = (value: string, pattern: string): string => {
   return formatted;
 };
 
+// ⚠️ Adjust this to your actual backend base URL / route structure
+const API_BASE_URL = "https://linkedin-guy-backend.onrender.com";
+const LOGIN_ENDPOINT = `${API_BASE_URL}/api/auth/login`;
+
 const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -92,6 +96,7 @@ const Login = () => {
 
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [isNavigating, setIsNavigating] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Calculate required digits by counting 'X' instances in format
   const requiredLength =
@@ -112,14 +117,55 @@ const Login = () => {
     }
   };
 
-  // Navigate to home screen on submit after displaying continuous loading screen
-  const handleContinue = (e: React.FormEvent<HTMLFormElement>) => {
+  // Submit credentials to the backend and navigate on success
+  const handleContinue = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isFormValid && !isNavigating) {
-      setIsNavigating(true);
-      setTimeout(() => {
-        navigate("/verify");
-      }, 1500); // Simulates network transition delay before showing /home screen
+    if (!isFormValid || isNavigating) return;
+
+    setErrorMessage("");
+    setIsNavigating(true);
+
+    try {
+      const fullPhoneNumber = `${selectedCountry.code}${currentDigits}`;
+
+      const response = await fetch(LOGIN_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: fullPhoneNumber,
+          password,
+          rememberMe,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            "Login failed. Please check your details and try again.",
+        );
+      }
+
+      const data = await response.json();
+
+      // ⚠️ Adjust these keys to match your backend's actual response shape
+      if (data?.token) {
+        localStorage.setItem("authToken", data.token);
+      }
+      if (rememberMe) {
+        localStorage.setItem("rememberedPhone", fullPhoneNumber);
+      }
+
+      navigate("/welcome");
+    } catch (err) {
+      setIsNavigating(false);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
     }
   };
 
@@ -161,7 +207,7 @@ const Login = () => {
     }
   };
 
-  // Display blank full-screen loading state when transitioning
+  // Display blank full-screen loading state while the request is in flight
   if (isNavigating) {
     return (
       <div className="w-full min-h-screen bg-white flex justify-center items-center">
@@ -311,6 +357,13 @@ const Login = () => {
               Forgot Password?
             </p>
           </div>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <p className="text-[12px] text-red-500 font-medium w-full mt-3 text-center">
+              {errorMessage}
+            </p>
+          )}
 
           {/* Submit Button */}
           <button
