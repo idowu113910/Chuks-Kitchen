@@ -989,7 +989,7 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
                 className={`shrink-0 ${
                   isClickable
                     ? "cursor-pointer active:scale-[0.98] transition-transform"
-                    : ""
+                    : "opacity-50 pointer-events-none"
                 }`}
               >
                 <div className="relative">
