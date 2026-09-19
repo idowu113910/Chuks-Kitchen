@@ -107,16 +107,6 @@ const Home = () => {
   const [networkError, setNetworkError] = useState("");
   const [showCheckoutSheet, setShowCheckoutSheet] = useState(false);
   const navigate = useNavigate();
-  
-
-  // 1. Declare the state and updater function inside your component
-  const [showRestaurantDetail, setShowRestaurantDetail] =
-    useState<boolean>(false);
-
-  // 2. Define the explicit update function to pass down or trigger
-  const updateShowRestaurantDetail = (value: boolean): void => {
-    setShowRestaurantDetail(value);
-  };
 
   const basePrice = 28.0;
 
@@ -922,95 +912,63 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
         <h1 className="font-semibold text-[#333333] text-[14px]">
           Popular Near You
         </h1>
+
         <div className="flex overflow-x-auto gap-4 px-6 -ml-6 scrollbar-hide">
-          {restaurants.map((restaurant) => {
-            const isClickable = restaurant.id === 1;
+          {restaurants.map((restaurant) => (
+            <div key={restaurant.id} className="relative shrink-0">
+              <img
+                src={restaurant.foodImage}
+                alt=""
+                className="w-55.75 h-29.75 rounded-tr-[10px] rounded-tl-[10px] mt-3"
+              />
 
-            return (
-              <div
-                key={restaurant.id}
-                onClick={
-                  isClickable
-                    ? () => updateShowRestaurantDetail(true)
-                    : undefined
-                }
-                className={`relative shrink-0 ${
-                  isClickable
-                    ? "cursor-pointer active:scale-[0.98] transition-transform"
-                    : "opacity-50"
-                }`}
-              >
-                <img
-                  src={restaurant.foodImage}
-                  alt=""
-                  className={`w-55.75 h-29.75 rounded-tr-[10px] rounded-tl-[10px] mt-3 object-cover ${
-                    isClickable ? "ring-2 ring-[#FF6B35]" : ""
-                  }`}
-                />
+              <div className="w-12.75 h-4.5 flex rounded-[10px] py-0.75 px-1.25 bg-white/20 backdrop-blur-[10px] gap-0.5 absolute top-6 left-4">
+                <IoMdStar className="text-[#FFC107] w-2.5 h-2.5 mt-0" />
 
-                <div className="w-12.75 h-4.5 flex rounded-[10px] py-0.75 px-1.25 bg-white/20 backdrop-blur-[10px] gap-0.5 absolute top-6 left-4">
-                  <IoMdStar className="text-[#FFC107] w-2.5 h-2.5 mt-0" />
+                <p className="font-medium text-[6px] text-white">
+                  {" "}
+                  <span className="font-medium text-[8px]">
+                    {restaurant.rating}{" "}
+                  </span>
+                  {restaurant.reviewCount}
+                </p>
+              </div>
 
-                  <p className="font-medium text-[6px] text-white">
-                    {" "}
-                    <span className="font-medium text-[8px]">
-                      {restaurant.rating}{" "}
-                    </span>
-                    {restaurant.reviewCount}
-                  </p>
-                </div>
+              <img src={love} alt="" className="absolute top-6 left-47.5" />
 
-                <button
-                  type="button"
-                  aria-label="Add to favorites"
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute top-6 left-47.5"
-                >
-                  <img src={love} alt="" />
-                </button>
+              <div className="flex gap-3.75 ml-2 mt-4">
+                <img src={restaurant.profileImage} alt="" className="" />
 
-                {isClickable && (
-                  <div className="absolute bottom-[6.5rem] left-2 bg-[#FF6B35] rounded-md px-2 py-0.5">
-                    <p className="font-medium text-[9px] text-white">
-                      Tap to view
+                <div className="flex flex-col gap-0.75">
+                  <div className="flex gap-0.75">
+                    <p className="font-semibold text-[14px] text-black">
+                      {restaurant.name}
                     </p>
+
+                    <RiCheckboxCircleFill className="text-[#1E90FF] w-2.5 h-2.5 mt-1.5" />
                   </div>
-                )}
 
-                <div className="flex gap-3.75 ml-2 mt-4">
-                  <img src={restaurant.profileImage} alt="" className="" />
+                  <div className="flex gap-1.25">
+                    <div className="flex gap-0.5">
+                      <img src={bike} alt="" className="w-4 h-4" />
 
-                  <div className="flex flex-col gap-0.75">
-                    <div className="flex gap-0.75">
-                      <p className="font-semibold text-[14px] text-black">
-                        {restaurant.name}
+                      <p className="text-[#FF6B35] text-[6px] font-medium mt-1">
+                        Free delivery
                       </p>
-
-                      <RiCheckboxCircleFill className="text-[#1E90FF] w-2.5 h-2.5 mt-1.5" />
                     </div>
 
-                    <div className="flex gap-1.25">
-                      <div className="flex gap-0.5">
-                        <img src={bike} alt="" className="w-4 h-4" />
+                    <div className="flex gap-0.75">
+                      <MdOutlineAccessTimeFilled className="text-[#757575] mt-0.5 w-2.5 h-2.5" />
 
-                        <p className="text-[#FF6B35] text-[6px] font-medium mt-1">
-                          Free delivery
-                        </p>
-                      </div>
-
-                      <div className="flex gap-0.75">
-                        <MdOutlineAccessTimeFilled className="text-[#757575] mt-0.5 w-2.5 h-2.5" />
-
-                        <p className="font-normal text-[#757575] text-[10px]">
-                          {restaurant.deliveryTime}
-                        </p>
-                      </div>
+                      <p className="font-normal text-[#757575] text-[10px]">
+                        {restaurant.deliveryTime}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
       <div className="mt-4 -ml-1.5">
