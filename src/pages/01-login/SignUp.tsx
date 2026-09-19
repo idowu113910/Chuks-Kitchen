@@ -169,7 +169,7 @@ const CountryDropdown: FC<CountryDropdownProps> = ({
         aria-label={`Selected country: ${selected.name}, ${selected.code}`}
         onClick={() => setIsOpen((prev) => !prev)}
         onKeyDown={handleTriggerKeyDown}
-        className="flex items-center gap-1.5 absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
+        className="flex items-center gap-1.5 absolute left-3 top-[-25px] -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
       >
         <div className="flex items-center gap-1">
           <img
@@ -617,17 +617,12 @@ const SignUp: FC = (): JSX.Element => {
                   onSelect={handleCountrySelect}
                 />
               </div>
-              {fieldError("phoneNumber") ? (
+              {fieldError("phoneNumber") && (
                 <p id="phone-error" className="text-red-600 text-[11px]">
                   {errors.phoneNumber}
                 </p>
-              ) : (
-                <p className="text-[#757575] text-[12px]">
-                  We will send a verification code
-                </p>
               )}
             </div>
-
             {/* Password */}
             <div className="flex flex-col gap-2 w-full mt-3">
               <label

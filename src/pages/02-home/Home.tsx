@@ -107,6 +107,16 @@ const Home = () => {
   const [networkError, setNetworkError] = useState("");
   const [showCheckoutSheet, setShowCheckoutSheet] = useState(false);
   const navigate = useNavigate();
+  
+
+  // 1. Declare the state and updater function inside your component
+  const [showRestaurantDetail, setShowRestaurantDetail] =
+    useState<boolean>(false);
+
+  // 2. Define the explicit update function to pass down or trigger
+  const updateShowRestaurantDetail = (value: boolean): void => {
+    setShowRestaurantDetail(value);
+  };
 
   const basePrice = 28.0;
 
