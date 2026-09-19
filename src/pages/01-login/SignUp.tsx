@@ -290,9 +290,14 @@ const SignUp: FC = (): JSX.Element => {
 
     if (!password) {
       next.password = "Password is required.";
-    } else if (password.length < 8 || !/[A-Z]/.test(password)) {
-      next.password =
-        "Must be at least 8 characters, including one uppercase letter.";
+    } else if (password.length < 8 || password.length > 72) {
+      next.password = "Password must be between 8 and 72 characters.";
+    } else if (!/[a-z]/.test(password)) {
+      next.password = "Password must contain a lowercase letter.";
+    } else if (!/[A-Z]/.test(password)) {
+      next.password = "Password must contain an uppercase letter.";
+    } else if (!/\d/.test(password)) {
+      next.password = "Password must contain a number.";
     }
 
     if (!confirmPassword) {
@@ -349,10 +354,11 @@ const SignUp: FC = (): JSX.Element => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          // Backend expects a single "name" field and "phone" (not
+          // "phoneNumber") — see auth.validator.js / auth.routes.js.
+          name: `${firstName.trim()} ${lastName.trim()}`.trim(),
           email,
-          phoneNumber: fullPhoneNumber,
+          phone: fullPhoneNumber,
           password,
         }),
       });
@@ -368,7 +374,7 @@ const SignUp: FC = (): JSX.Element => {
         );
       }
 
-      if (!response.ok) {
+      if (!response.ok || data?.success === false) {
         let details = "";
         if (Array.isArray(data?.errors)) {
           details = data.errors
@@ -390,8 +396,10 @@ const SignUp: FC = (): JSX.Element => {
       // httpOnly, Secure cookie on this response instead of returning the
       // token in the JSON body — that can't be done from the client alone.
       // Keeping this as a stopgap until the backend supports that.
-      if (data?.token) {
-        localStorage.setItem("authToken", data.token);
+      // Confirmed shape from auth.service.js: { success, message, data: { user, token } }.
+      const token = data?.data?.token;
+      if (token) {
+        localStorage.setItem("authToken", token);
       }
 
       navigate("/verify");
@@ -594,6 +602,7 @@ const SignUp: FC = (): JSX.Element => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onBlur={() => markTouched("password")}
+                maxLength={72}
                 aria-invalid={!!fieldError("password")}
                 aria-describedby="password-hint"
                 className={inputClass("password", "pl-3 pr-12")}
@@ -615,7 +624,7 @@ const SignUp: FC = (): JSX.Element => {
               }`}
             >
               {fieldError("password") ??
-                "Must be at least 8 characters, including one uppercase letter"}
+                "8-72 characters, with a lowercase letter, an uppercase letter, and a number"}
             </p>
           </div>
 
