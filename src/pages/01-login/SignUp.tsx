@@ -128,13 +128,15 @@ const SignUp: FC = (): JSX.Element => {
     setIsDropdownOpen(false);
   };
 
+  // Password validation: at least 8 characters and 1 uppercase letter
+  const isPasswordValid = password.length >= 8 && /[A-Z]/.test(password);
+
   const isFormValid =
     firstName.trim() !== "" &&
     lastName.trim() !== "" &&
     email.trim() !== "" &&
     phoneNumber.trim() !== "" &&
-    password.trim() !== "" &&
-    confirmpassword.trim() !== "" &&
+    isPasswordValid &&
     password === confirmpassword;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -167,8 +169,20 @@ const SignUp: FC = (): JSX.Element => {
       const data = await response.json();
 
       if (!response.ok) {
+        // Extract field-specific validation errors if returned as an array
+        let details = "";
+        if (Array.isArray(data.errors)) {
+          details = data.errors
+            .map((err: any) => err.msg || err.message)
+            .join(" | ");
+        } else if (typeof data.errors === "object" && data.errors !== null) {
+          details = Object.values(data.errors).join(" | ");
+        }
+
         throw new Error(
-          data.message || "Registration failed. Please try again.",
+          details ||
+            data.message ||
+            "Registration failed. Please check your inputs.",
         );
       }
 
