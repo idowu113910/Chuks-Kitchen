@@ -169,7 +169,7 @@ const CountryDropdown: FC<CountryDropdownProps> = ({
         aria-label={`Selected country: ${selected.name}, ${selected.code}`}
         onClick={() => setIsOpen((prev) => !prev)}
         onKeyDown={handleTriggerKeyDown}
-        className="flex items-center gap-1.5 absolute left-3 top-[-25px] -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
+        className="flex items-center gap-1.5 absolute left-3 top-[-24px] -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
       >
         <div className="flex items-center gap-1">
           <img
@@ -608,7 +608,7 @@ const SignUp: FC = (): JSX.Element => {
                   aria-describedby={
                     fieldError("phoneNumber") ? "phone-error" : undefined
                   }
-                  className={inputClass("phoneNumber", "pl-28 pr-4")}
+                  className={inputClass("phoneNumber", "pl-24  pr-4")}
                 />
 
                 <CountryDropdown
