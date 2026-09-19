@@ -245,8 +245,20 @@ const SignUp: FC = (): JSX.Element => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [signupSuccess, setSignupSuccess] = useState<boolean>(false);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
+
+  // Clear the pending redirect if the component unmounts before it fires
+  // (e.g. the user navigates away manually during the countdown).
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
 
@@ -402,7 +414,13 @@ const SignUp: FC = (): JSX.Element => {
         localStorage.setItem("authToken", token);
       }
 
-      navigate("/verify");
+      // Show a confirmation message, then send them to sign in with the
+      // credentials they just created — rather than assuming a /verify
+      // step exists.
+      setSignupSuccess(true);
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate("/login");
+      }, 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setErrorMessage(err.message);
@@ -442,7 +460,7 @@ const SignUp: FC = (): JSX.Element => {
         </div>
 
         {/* Error Alert Display */}
-        {errorMessage && (
+        {errorMessage && !signupSuccess && (
           <div
             role="alert"
             className="w-full mt-4 p-3 bg-red-100 border border-red-400 text-red-700 text-xs rounded-[10px] text-center"
@@ -451,242 +469,266 @@ const SignUp: FC = (): JSX.Element => {
           </div>
         )}
 
-        {/* Form Container */}
-        <form
-          className="w-full mt-6 flex flex-col items-center"
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          {/* First Name & Last Name */}
-          <div className="flex gap-4 sm:gap-5.25 w-full justify-center">
-            <div className="flex-1 max-w-[165px]">
-              <label
-                htmlFor="firstName"
-                className="text-[#333333] text-[16px] font-medium block"
-              >
-                First Name
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                onBlur={() => markTouched("firstName")}
-                required
-                aria-invalid={!!fieldError("firstName")}
-                aria-describedby={
-                  fieldError("firstName") ? "firstName-error" : undefined
-                }
-                className={inputClass("firstName", "mt-2")}
-              />
-              {fieldError("firstName") && (
-                <p
-                  id="firstName-error"
-                  className="text-red-600 text-[11px] mt-1"
-                >
-                  {errors.firstName}
-                </p>
-              )}
-            </div>
-
-            <div className="flex-1 max-w-[165px]">
-              <label
-                htmlFor="lastName"
-                className="text-[#333333] text-[16px] font-medium block"
-              >
-                Last Name
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onBlur={() => markTouched("lastName")}
-                required
-                aria-invalid={!!fieldError("lastName")}
-                aria-describedby={
-                  fieldError("lastName") ? "lastName-error" : undefined
-                }
-                className={inputClass("lastName", "mt-2")}
-              />
-              {fieldError("lastName") && (
-                <p
-                  id="lastName-error"
-                  className="text-red-600 text-[11px] mt-1"
-                >
-                  {errors.lastName}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Email Address */}
-          <div className="flex flex-col gap-2 w-full mt-3">
-            <label
-              htmlFor="email"
-              className="font-medium text-[16px] text-[#333333]"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => markTouched("email")}
-              placeholder="example@email.com"
-              required
-              aria-invalid={!!fieldError("email")}
-              aria-describedby={fieldError("email") ? "email-error" : undefined}
-              className={inputClass("email")}
-            />
-            {fieldError("email") && (
-              <p id="email-error" className="text-red-600 text-[11px] -mt-1">
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Phone Number */}
-          <div className="flex flex-col gap-2 w-full mt-3">
-            <label
-              htmlFor="phoneNumber"
-              className="font-medium text-[16px] text-[#333333]"
-            >
-              Phone Number
-            </label>
-            <div className="relative w-full">
-              <input
-                id="phoneNumber"
-                type="tel"
-                value={phoneDisplay}
-                onChange={handlePhoneChange}
-                onBlur={() => markTouched("phoneNumber")}
-                placeholder={selectedCountry.placeholder}
-                aria-invalid={!!fieldError("phoneNumber")}
-                aria-describedby={
-                  fieldError("phoneNumber") ? "phone-error" : undefined
-                }
-                className={inputClass("phoneNumber", "pl-28 pr-4")}
-              />
-
-              <CountryDropdown
-                countries={countries}
-                selected={selectedCountry}
-                onSelect={handleCountrySelect}
-              />
-            </div>
-            {fieldError("phoneNumber") ? (
-              <p id="phone-error" className="text-red-600 text-[11px]">
-                {errors.phoneNumber}
-              </p>
-            ) : (
-              <p className="text-[#757575] text-[12px]">
-                We will send a verification code
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="flex flex-col gap-2 w-full mt-3">
-            <label
-              htmlFor="password"
-              className="font-medium text-[16px] text-[#333333]"
-            >
-              Password
-            </label>
-            <div className="relative w-full">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onBlur={() => markTouched("password")}
-                maxLength={72}
-                aria-invalid={!!fieldError("password")}
-                aria-describedby="password-hint"
-                className={inputClass("password", "pl-3 pr-12")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                aria-pressed={showPassword}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#757575] text-xl cursor-pointer"
-              >
-                {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
-              </button>
-            </div>
-            <p
-              id="password-hint"
-              className={`font-normal text-[12px] ${
-                fieldError("password") ? "text-red-600" : "text-[#757575]"
-              }`}
-            >
-              {fieldError("password") ??
-                "8-72 characters, with a lowercase letter, an uppercase letter, and a number"}
+        {/* Success state — shown after a successful signup, then auto-redirects to /login */}
+        {signupSuccess && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="w-full mt-6 p-5 bg-green-50 border border-green-300 rounded-[10px] text-center flex flex-col items-center gap-2"
+          >
+            <span className="text-2xl" aria-hidden="true">
+              ✅
+            </span>
+            <p className="text-green-800 font-medium text-[15px]">
+              Account created successfully!
+            </p>
+            <p className="text-green-700 text-[13px]">
+              Please sign in using the same email and password you just created.
+              Taking you to the sign-in page…
             </p>
           </div>
+        )}
 
-          {/* Confirm Password */}
-          <div className="flex flex-col gap-2 w-full mt-3">
-            <label
-              htmlFor="confirmPassword"
-              className="font-medium text-[16px] text-[#333333]"
-            >
-              Confirm Password
-            </label>
-            <div className="relative w-full">
-              <input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onBlur={() => markTouched("confirmPassword")}
-                aria-invalid={!!fieldError("confirmPassword")}
-                aria-describedby={
-                  fieldError("confirmPassword") ? "confirm-error" : undefined
-                }
-                className={inputClass("confirmPassword", "pl-3 pr-12")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-                aria-label={
-                  showConfirmPassword ? "Hide password" : "Show password"
-                }
-                aria-pressed={showConfirmPassword}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#757575] text-xl cursor-pointer"
-              >
-                {showConfirmPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
-              </button>
-            </div>
-            {fieldError("confirmPassword") && (
-              <p id="confirm-error" className="text-red-600 text-[11px]">
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          {/* Submit Button — inline spinner instead of replacing the whole page */}
-          <button
-            type="submit"
-            disabled={loading || !isFormValid}
-            className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] transition flex items-center justify-center gap-2 ${
-              isFormValid && !loading
-                ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
-                : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
-            }`}
+        {/* Form Container */}
+        {!signupSuccess && (
+          <form
+            className="w-full mt-6 flex flex-col items-center"
+            onSubmit={handleSubmit}
+            noValidate
           >
-            {loading && (
-              <span
-                className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
-                aria-hidden="true"
+            {/* First Name & Last Name */}
+            <div className="flex gap-4 sm:gap-5.25 w-full justify-center">
+              <div className="flex-1 max-w-[165px]">
+                <label
+                  htmlFor="firstName"
+                  className="text-[#333333] text-[16px] font-medium block"
+                >
+                  First Name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  onBlur={() => markTouched("firstName")}
+                  required
+                  aria-invalid={!!fieldError("firstName")}
+                  aria-describedby={
+                    fieldError("firstName") ? "firstName-error" : undefined
+                  }
+                  className={inputClass("firstName", "mt-2")}
+                />
+                {fieldError("firstName") && (
+                  <p
+                    id="firstName-error"
+                    className="text-red-600 text-[11px] mt-1"
+                  >
+                    {errors.firstName}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex-1 max-w-[165px]">
+                <label
+                  htmlFor="lastName"
+                  className="text-[#333333] text-[16px] font-medium block"
+                >
+                  Last Name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  onBlur={() => markTouched("lastName")}
+                  required
+                  aria-invalid={!!fieldError("lastName")}
+                  aria-describedby={
+                    fieldError("lastName") ? "lastName-error" : undefined
+                  }
+                  className={inputClass("lastName", "mt-2")}
+                />
+                {fieldError("lastName") && (
+                  <p
+                    id="lastName-error"
+                    className="text-red-600 text-[11px] mt-1"
+                  >
+                    {errors.lastName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Email Address */}
+            <div className="flex flex-col gap-2 w-full mt-3">
+              <label
+                htmlFor="email"
+                className="font-medium text-[16px] text-[#333333]"
+              >
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => markTouched("email")}
+                placeholder="example@email.com"
+                required
+                aria-invalid={!!fieldError("email")}
+                aria-describedby={
+                  fieldError("email") ? "email-error" : undefined
+                }
+                className={inputClass("email")}
               />
-            )}
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
+              {fieldError("email") && (
+                <p id="email-error" className="text-red-600 text-[11px] -mt-1">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div className="flex flex-col gap-2 w-full mt-3">
+              <label
+                htmlFor="phoneNumber"
+                className="font-medium text-[16px] text-[#333333]"
+              >
+                Phone Number
+              </label>
+              <div className="relative w-full">
+                <input
+                  id="phoneNumber"
+                  type="tel"
+                  value={phoneDisplay}
+                  onChange={handlePhoneChange}
+                  onBlur={() => markTouched("phoneNumber")}
+                  placeholder={selectedCountry.placeholder}
+                  aria-invalid={!!fieldError("phoneNumber")}
+                  aria-describedby={
+                    fieldError("phoneNumber") ? "phone-error" : undefined
+                  }
+                  className={inputClass("phoneNumber", "pl-28 pr-4")}
+                />
+
+                <CountryDropdown
+                  countries={countries}
+                  selected={selectedCountry}
+                  onSelect={handleCountrySelect}
+                />
+              </div>
+              {fieldError("phoneNumber") ? (
+                <p id="phone-error" className="text-red-600 text-[11px]">
+                  {errors.phoneNumber}
+                </p>
+              ) : (
+                <p className="text-[#757575] text-[12px]">
+                  We will send a verification code
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-2 w-full mt-3">
+              <label
+                htmlFor="password"
+                className="font-medium text-[16px] text-[#333333]"
+              >
+                Password
+              </label>
+              <div className="relative w-full">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => markTouched("password")}
+                  maxLength={72}
+                  aria-invalid={!!fieldError("password")}
+                  aria-describedby="password-hint"
+                  className={inputClass("password", "pl-3 pr-12")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#757575] text-xl cursor-pointer"
+                >
+                  {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+                </button>
+              </div>
+              <p
+                id="password-hint"
+                className={`font-normal text-[12px] ${
+                  fieldError("password") ? "text-red-600" : "text-[#757575]"
+                }`}
+              >
+                {fieldError("password") ??
+                  "8-72 characters, with a lowercase letter, an uppercase letter, and a number"}
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-2 w-full mt-3">
+              <label
+                htmlFor="confirmPassword"
+                className="font-medium text-[16px] text-[#333333]"
+              >
+                Confirm Password
+              </label>
+              <div className="relative w-full">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => markTouched("confirmPassword")}
+                  aria-invalid={!!fieldError("confirmPassword")}
+                  aria-describedby={
+                    fieldError("confirmPassword") ? "confirm-error" : undefined
+                  }
+                  className={inputClass("confirmPassword", "pl-3 pr-12")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                  aria-pressed={showConfirmPassword}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#757575] text-xl cursor-pointer"
+                >
+                  {showConfirmPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+                </button>
+              </div>
+              {fieldError("confirmPassword") && (
+                <p id="confirm-error" className="text-red-600 text-[11px]">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button — inline spinner instead of replacing the whole page */}
+            <button
+              type="submit"
+              disabled={loading || !isFormValid}
+              className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] transition flex items-center justify-center gap-2 ${
+                isFormValid && !loading
+                  ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
+                  : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
+              }`}
+            >
+              {loading && (
+                <span
+                  className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+              )}
+              {loading ? "Creating account..." : "Sign Up"}
+            </button>
+          </form>
+        )}
 
         {/* Terms */}
         <p className="text-[12px] text-[#000000] text-center mt-3 px-2">
