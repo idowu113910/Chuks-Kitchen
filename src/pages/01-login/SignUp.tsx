@@ -2,6 +2,7 @@ import {
   useState,
   useRef,
   useEffect,
+  useCallback,
   type FC,
   type FormEvent,
   type ChangeEvent,
@@ -21,13 +22,9 @@ interface Country {
   maxDigits: number;
 }
 
-// Base URL comes from env so dev/staging/prod can point at different backends.
-// Add VITE_API_URL to your .env file; falls back to the current backend if unset.
 const API_URL =
   import.meta.env.VITE_API_URL ?? "https://linkedin-guy-backend.onrender.com";
 
-// All flags served the same way (flagcdn) for consistency — no mixed
-// local-import/remote-URL sources.
 const countries: Country[] = [
   {
     code: "+234",
@@ -81,7 +78,6 @@ const countries: Country[] = [
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Formats a string of raw digits according to an "X" placeholder pattern. */
 const applyFormat = (digits: string, pattern: string): string => {
   let formatted = "";
   let digitIndex = 0;
@@ -109,7 +105,6 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
-// --- Country dropdown, split out for readability and keyboard support ---
 interface CountryDropdownProps {
   countries: Country[];
   selected: Country;
@@ -233,8 +228,6 @@ const SignUp: FC = (): JSX.Element => {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  // Store raw digits only; format for display is derived. This fixes the bug
-  // where switching country re-formatted an already-formatted string.
   const [phoneDigits, setPhoneDigits] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -250,8 +243,6 @@ const SignUp: FC = (): JSX.Element => {
 
   const navigate = useNavigate();
 
-  // Clear the pending redirect if the component unmounts before it fires
-  // (e.g. the user navigates away manually during the countdown).
   useEffect(() => {
     return () => {
       if (redirectTimeoutRef.current) {
@@ -277,12 +268,11 @@ const SignUp: FC = (): JSX.Element => {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
-    // Re-format against the same underlying digits, not the display string —
-    // no double-formatting, no drift.
     setPhoneDigits((prev) => prev.slice(0, country.maxDigits));
   };
 
-  const validate = (): FormErrors => {
+  // Wrapped in useCallback so that live validation always receives the current state
+  const validate = useCallback((): FormErrors => {
     const next: FormErrors = {};
 
     if (!firstName.trim()) next.firstName = "First name is required.";
@@ -319,13 +309,6 @@ const SignUp: FC = (): JSX.Element => {
     }
 
     return next;
-  };
-
-  // Live-validate only fields the user has already interacted with, so
-  // errors don't appear before someone has had a chance to type.
-  useEffect(() => {
-    setErrors(validate());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     firstName,
     lastName,
@@ -333,8 +316,12 @@ const SignUp: FC = (): JSX.Element => {
     phoneDigits,
     password,
     confirmPassword,
-    selectedCountry,
+    selectedCountry.maxDigits,
   ]);
+
+  useEffect(() => {
+    setErrors(validate());
+  }, [validate]);
 
   const isFormValid = Object.keys(validate()).length === 0;
 
@@ -366,8 +353,6 @@ const SignUp: FC = (): JSX.Element => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          // Backend expects a single "name" field and "phone" (not
-          // "phoneNumber") — see auth.validator.js / auth.routes.js.
           name: `${firstName.trim()} ${lastName.trim()}`.trim(),
           email,
           phone: fullPhoneNumber,
@@ -375,8 +360,6 @@ const SignUp: FC = (): JSX.Element => {
         }),
       });
 
-      // Parse JSON defensively — a non-JSON error response (e.g. a 502 HTML
-      // page) shouldn't throw an unhandled exception here.
       let data: any = null;
       try {
         data = await response.json();
@@ -403,20 +386,11 @@ const SignUp: FC = (): JSX.Element => {
         );
       }
 
-      // NOTE: storing the auth token in localStorage is vulnerable to XSS
-      // token theft. The correct long-term fix is for the backend to set an
-      // httpOnly, Secure cookie on this response instead of returning the
-      // token in the JSON body — that can't be done from the client alone.
-      // Keeping this as a stopgap until the backend supports that.
-      // Confirmed shape from auth.service.js: { success, message, data: { user, token } }.
       const token = data?.data?.token;
       if (token) {
         localStorage.setItem("authToken", token);
       }
 
-      // Show a confirmation message, then send them to sign in with the
-      // credentials they just created — rather than assuming a /verify
-      // step exists.
       setSignupSuccess(true);
       redirectTimeoutRef.current = setTimeout(() => {
         navigate("/verify");
@@ -469,7 +443,7 @@ const SignUp: FC = (): JSX.Element => {
           </div>
         )}
 
-        {/* Success state — shown after a successful signup, then auto-redirects to /login */}
+        {/* Success State */}
         {signupSuccess && (
           <div
             role="status"
@@ -608,7 +582,7 @@ const SignUp: FC = (): JSX.Element => {
                   aria-describedby={
                     fieldError("phoneNumber") ? "phone-error" : undefined
                   }
-                  className={inputClass("phoneNumber", "pl-24  pr-4")}
+                  className={inputClass("phoneNumber", "pl-24 pr-4")}
                 />
 
                 <CountryDropdown
@@ -623,6 +597,7 @@ const SignUp: FC = (): JSX.Element => {
                 </p>
               )}
             </div>
+
             {/* Password */}
             <div className="flex flex-col gap-2 w-full mt-3">
               <label
@@ -704,16 +679,16 @@ const SignUp: FC = (): JSX.Element => {
               )}
             </div>
 
-            {/* Submit Button — inline spinner instead of replacing the whole page */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading || !isFormValid}
               className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] 
                 transition flex items-center justify-center gap-2 ${
-                isFormValid && !loading
-                  ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
-                  : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
-              }`}
+                  isFormValid && !loading
+                    ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
+                    : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"
+                }`}
             >
               {loading && (
                 <span
