@@ -229,7 +229,7 @@ const Map = () => {
           <img
             src={loc}
             alt="Location icon"
-            className="w-5 h-5 object-contain flex-shrink-0"
+            className="w-5 h-5 object-contain shrink-0"
           />
           <p className="font-normal text-base sm:text-lg text-black">
             {isLocating

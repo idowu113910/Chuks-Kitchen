@@ -176,7 +176,8 @@ const Payment = () => {
             onChange={handleCardNumberChange}
             placeholder="0000 0000 0000 0000"
             maxLength={19}
-            className="w-full max-w-87.25 text-[8px] mt-1.5 text-[#333333] placeholder:text-[#B0B0B0] outline-none border-none p-0 bg-transparent"
+            className="w-full max-w-87.25 text-[8px] mt-1.5 text-[#333333] placeholder:text-[#B0B0B0]
+             outline-none border-none p-0 bg-transparent"
           />
         </div>
 

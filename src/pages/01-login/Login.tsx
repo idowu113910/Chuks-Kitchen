@@ -136,7 +136,7 @@ const Login: FC = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-8">
-      <div className="w-full max-w-[350px] sm:max-w-md flex flex-col items-center">
+      <div className="w-full max-w-87.5 sm:max-w-md flex flex-col items-center">
         {/* Header Section */}
         <div className="flex flex-col items-center justify-center text-center mt-6">
           <img src={chuks} alt="Company logo" />
@@ -304,15 +304,15 @@ const Login: FC = () => {
         <div className="flex items-center justify-center gap-4 w-full mt-4">
           <button
             type="button"
-            className="bg-black text-white p-2.5 h-11 rounded-[5px] gap-2 flex items-center justify-center flex-1 max-w-[140px]"
+            className="bg-black text-white p-2.5 h-11 rounded-[5px] gap-2 flex items-center justify-center flex-1 max-w-35"
           >
-            <FaApple className="w-[20px] h-[20px]" />
+            <FaApple className="w-5 h-5" />
             <span className="font-medium text-[16px]">Apple</span>
           </button>
 
           <button
             type="button"
-            className="bg-[#F0F0F0] p-2.5 h-11 rounded-[5px] gap-2 flex items-center justify-center flex-1 max-w-[140px]"
+            className="bg-[#F0F0F0] p-2.5 h-11 rounded-[5px] gap-2 flex items-center justify-center flex-1 max-w-35"
           >
             <img src={g} alt="" className="w-5 h-5" />
             <span className="font-medium text-[16px] text-[#333333]">

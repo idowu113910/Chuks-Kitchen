@@ -169,13 +169,13 @@ const CountryDropdown: FC<CountryDropdownProps> = ({
         aria-label={`Selected country: ${selected.name}, ${selected.code}`}
         onClick={() => setIsOpen((prev) => !prev)}
         onKeyDown={handleTriggerKeyDown}
-        className="flex items-center gap-1.5 absolute left-3 top-[-24px] -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
+        className="flex items-center gap-1.5 absolute left-3 -top-6 -translate-y-1/2 cursor-pointer select-none bg-white py-1 pr-1 z-10"
       >
         <div className="flex items-center gap-1">
           <img
             src={selected.flag}
             alt=""
-            className="w-[20.67px] h-[12.67px] object-cover rounded-[2px]"
+            className="w-[20.67px] h-[12.67px] object-cover rounded-xs"
           />
           <span
             className={`text-[#757575] text-xs transition-transform inline-block ${
@@ -213,7 +213,7 @@ const CountryDropdown: FC<CountryDropdownProps> = ({
               <img
                 src={country.flag}
                 alt=""
-                className="w-[20.67px] h-[12.67px] object-cover rounded-[2px]"
+                className="w-[20.67px] h-[12.67px] object-cover rounded-xs"
               />
               <span className="text-[14px] font-medium text-[#333333] w-12">
                 {country.code}
@@ -419,7 +419,7 @@ const SignUp: FC = (): JSX.Element => {
       // step exists.
       setSignupSuccess(true);
       redirectTimeoutRef.current = setTimeout(() => {
-        navigate("/login");
+        navigate("/verify");
       }, 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -444,7 +444,7 @@ const SignUp: FC = (): JSX.Element => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-8">
-      <div className="w-full max-w-[350px] sm:max-w-md flex flex-col items-center">
+      <div className="w-full max-w-87.5 sm:max-w-md flex flex-col items-center">
         {/* Header Section */}
         <div className="flex flex-col items-center justify-center text-center">
           <img src={chuks} alt="Company logo" />
@@ -498,7 +498,7 @@ const SignUp: FC = (): JSX.Element => {
           >
             {/* First Name & Last Name */}
             <div className="flex gap-4 sm:gap-5.25 w-full justify-center">
-              <div className="flex-1 max-w-[165px]">
+              <div className="flex-1 max-w-41.25">
                 <label
                   htmlFor="firstName"
                   className="text-[#333333] text-[16px] font-medium block"
@@ -528,7 +528,7 @@ const SignUp: FC = (): JSX.Element => {
                 )}
               </div>
 
-              <div className="flex-1 max-w-[165px]">
+              <div className="flex-1 max-w-41.25">
                 <label
                   htmlFor="lastName"
                   className="text-[#333333] text-[16px] font-medium block"
@@ -708,7 +708,8 @@ const SignUp: FC = (): JSX.Element => {
             <button
               type="submit"
               disabled={loading || !isFormValid}
-              className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] transition flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 px-4 mt-6 text-[#ffffff] font-medium text-[14px] rounded-[10px] 
+                transition flex items-center justify-center gap-2 ${
                 isFormValid && !loading
                   ? "bg-[#FF6B35] hover:bg-[#d44e0a] cursor-pointer"
                   : "bg-[#EC5B0C] opacity-50 cursor-not-allowed"

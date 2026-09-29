@@ -874,7 +874,8 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
                 </p>
               </div>
 
-              <button className="bg-white py-0.75 px-2.5 w-21 h-6 rounded-[5px] font-medium text-[12px] text-[#333333] mt-1.5 whitespace-nowrap">
+              <button className="bg-white py-0.75 px-2.5 w-21 h-6 rounded-[5px] font-medium text-[12px]
+               text-[#333333] mt-1.5 whitespace-nowrap">
                 Order Now
               </button>
             </div>
@@ -922,7 +923,8 @@ rounded-xl cursor-pointer active:scale-[0.98] transition-transform text-[14px] f
                 className="w-55.75 h-29.75 rounded-tr-[10px] rounded-tl-[10px] mt-3"
               />
 
-              <div className="w-12.75 h-4.5 flex rounded-[10px] py-0.75 px-1.25 bg-white/20 backdrop-blur-[10px] gap-0.5 absolute top-6 left-4">
+              <div className="w-12.75 h-4.5 flex rounded-[10px] py-0.75 px-1.25 bg-white/20 
+              backdrop-blur-[10px] gap-0.5 absolute top-6 left-4">
                 <IoMdStar className="text-[#FFC107] w-2.5 h-2.5 mt-0" />
 
                 <p className="font-medium text-[6px] text-white">
