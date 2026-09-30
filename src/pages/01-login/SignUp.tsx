@@ -79,7 +79,13 @@ const countries: Country[] = [
   },
 ];
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Gmail local-part may contain letters, numbers, dots, and plus signs
+// (used for +tag aliasing); the domain must be exactly gmail.com.
+const EMAIL_ALLOWED_CHARS = /[^a-zA-Z0-9.+@]/g;
+const EMAIL_REGEX = /^[a-zA-Z0-9.+]+@gmail\.com$/i;
+
+// Periods are excluded from passwords entirely, per requirement.
+const PASSWORD_DISALLOWED_CHARS = /\./g;
 
 /** Formats a string of raw digits according to an "X" placeholder pattern. */
 const applyFormat = (digits: string, pattern: string): string => {
@@ -242,11 +248,22 @@ const SignUp: FC = (): JSX.Element => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [slowRequestHint, setSlowRequestHint] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [signupSuccess, setSignupSuccess] = useState<boolean>(false);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Refs used only as a submit-time fallback: some browser password
+  // managers / autofill set an input's DOM value directly without firing
+  // an event React observes, so state can end up out of sync with what's
+  // actually visible in the field — most commonly on the Confirm Password
+  // input, and most commonly in production where real autofill kicks in
+  // (rare locally). Reading .value from these refs at submit time lets us
+  // validate against the ground truth instead of a possibly-stale state.
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
 
@@ -275,6 +292,21 @@ const SignUp: FC = (): JSX.Element => {
     setPhoneDigits(digits);
   };
 
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const cleaned = e.target.value.replace(EMAIL_ALLOWED_CHARS, "");
+    setEmail(cleaned);
+  };
+
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const cleaned = e.target.value.replace(PASSWORD_DISALLOWED_CHARS, "");
+    setPassword(cleaned);
+  };
+
+  const handleConfirmPasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const cleaned = e.target.value.replace(PASSWORD_DISALLOWED_CHARS, "");
+    setConfirmPassword(cleaned);
+  };
+
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     // Re-format against the same underlying digits, not the display string —
@@ -282,7 +314,13 @@ const SignUp: FC = (): JSX.Element => {
     setPhoneDigits((prev) => prev.slice(0, country.maxDigits));
   };
 
-  const validate = (): FormErrors => {
+  // Accepts optional overrides for password/confirmPassword so callers
+  // (specifically handleSubmit) can validate against a freshly-read DOM
+  // value instead of possibly-stale state, without duplicating this logic.
+  const validate = (
+    passwordValue: string = password,
+    confirmPasswordValue: string = confirmPassword,
+  ): FormErrors => {
     const next: FormErrors = {};
 
     if (!firstName.trim()) next.firstName = "First name is required.";
@@ -291,7 +329,7 @@ const SignUp: FC = (): JSX.Element => {
     if (!email.trim()) {
       next.email = "Email is required.";
     } else if (!EMAIL_REGEX.test(email.trim())) {
-      next.email = "Enter a valid email address.";
+      next.email = "Enter a valid Gmail address (e.g. name@gmail.com).";
     }
 
     if (!phoneDigits) {
@@ -300,21 +338,23 @@ const SignUp: FC = (): JSX.Element => {
       next.phoneNumber = `Enter a full ${selectedCountry.maxDigits}-digit number.`;
     }
 
-    if (!password) {
+    if (!passwordValue) {
       next.password = "Password is required.";
-    } else if (password.length < 8 || password.length > 72) {
+    } else if (passwordValue.length < 8 || passwordValue.length > 72) {
       next.password = "Password must be between 8 and 72 characters.";
-    } else if (!/[a-z]/.test(password)) {
+    } else if (!/[a-z]/.test(passwordValue)) {
       next.password = "Password must contain a lowercase letter.";
-    } else if (!/[A-Z]/.test(password)) {
+    } else if (!/[A-Z]/.test(passwordValue)) {
       next.password = "Password must contain an uppercase letter.";
-    } else if (!/\d/.test(password)) {
+    } else if (!/\d/.test(passwordValue)) {
       next.password = "Password must contain a number.";
+    } else if (passwordValue.includes(".")) {
+      next.password = "Password cannot contain a period (.).";
     }
 
-    if (!confirmPassword) {
+    if (!confirmPasswordValue) {
       next.confirmPassword = "Please confirm your password.";
-    } else if (password !== confirmPassword) {
+    } else if (passwordValue !== confirmPasswordValue) {
       next.confirmPassword = "Passwords do not match.";
     }
 
@@ -341,7 +381,23 @@ const SignUp: FC = (): JSX.Element => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const currentErrors = validate();
+    // Read the actual DOM value as the source of truth for these two
+    // fields. If autofill set the input's value without React's state
+    // catching up, `password`/`confirmPassword` state could be stale —
+    // this sync closes that gap before we validate or submit anything.
+    const domPassword = (passwordRef.current?.value ?? password).replace(
+      PASSWORD_DISALLOWED_CHARS,
+      "",
+    );
+    const domConfirmPassword = (
+      confirmPasswordRef.current?.value ?? confirmPassword
+    ).replace(PASSWORD_DISALLOWED_CHARS, "");
+
+    if (domPassword !== password) setPassword(domPassword);
+    if (domConfirmPassword !== confirmPassword)
+      setConfirmPassword(domConfirmPassword);
+
+    const currentErrors = validate(domPassword, domConfirmPassword);
     setErrors(currentErrors);
     setTouched({
       firstName: true,
@@ -356,6 +412,13 @@ const SignUp: FC = (): JSX.Element => {
 
     setLoading(true);
     setErrorMessage("");
+    setSlowRequestHint(false);
+
+    // If the backend is waking up from a cold start (common on Render's
+    // free tier after ~15 minutes idle), this can take 30-60+ seconds.
+    // Surface a hint after 5 seconds so the wait doesn't look like a
+    // frozen app — cleared in `finally` whether it fired or not.
+    const slowRequestTimer = setTimeout(() => setSlowRequestHint(true), 5000);
 
     const fullPhoneNumber = `${selectedCountry.code}${phoneDigits}`;
 
@@ -369,15 +432,10 @@ const SignUp: FC = (): JSX.Element => {
           // Backend expects a single "name" field and "phone" (not
           // "phoneNumber") — see auth.validator.js / auth.routes.js.
           name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-          email: email.trim(),
+          email,
           phone: fullPhoneNumber,
-          password,
-          // FIX: the backend validator also checks for a confirm-password
-          // field. Without it, the API replies "confirm password is
-          // required" even though the form filled it in. If your validator
-          // uses a different key (e.g. "confirm_password" or
-          // "passwordConfirm"), rename this key to match exactly.
-          confirmPassword,
+          password: domPassword,
+          confirmPassword: domConfirmPassword,
         }),
       });
 
@@ -420,7 +478,9 @@ const SignUp: FC = (): JSX.Element => {
         localStorage.setItem("authToken", token);
       }
 
-      // Show a confirmation message, then send them to the next step.
+      // Show a confirmation message, then send them to sign in with the
+      // credentials they just created — rather than assuming a /verify
+      // step exists.
       setSignupSuccess(true);
       redirectTimeoutRef.current = setTimeout(() => {
         navigate("/verify");
@@ -432,6 +492,8 @@ const SignUp: FC = (): JSX.Element => {
         setErrorMessage("An unexpected error occurred.");
       }
     } finally {
+      clearTimeout(slowRequestTimer);
+      setSlowRequestHint(false);
       setLoading(false);
     }
   };
@@ -473,7 +535,7 @@ const SignUp: FC = (): JSX.Element => {
           </div>
         )}
 
-        {/* Success state — shown after a successful signup, then auto-redirects */}
+        {/* Success state — shown after a successful signup, then auto-redirects to /login */}
         {signupSuccess && (
           <div
             role="status"
@@ -487,7 +549,8 @@ const SignUp: FC = (): JSX.Element => {
               Account created successfully!
             </p>
             <p className="text-green-700 text-[13px]">
-              Taking you to the next step…
+              Please sign in using the same email and password you just created.
+              Taking you to the sign-in page…
             </p>
           </div>
         )}
@@ -510,7 +573,9 @@ const SignUp: FC = (): JSX.Element => {
                 </label>
                 <input
                   id="firstName"
+                  name="firstName"
                   type="text"
+                  autoComplete="given-name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   onBlur={() => markTouched("firstName")}
@@ -540,7 +605,9 @@ const SignUp: FC = (): JSX.Element => {
                 </label>
                 <input
                   id="lastName"
+                  name="lastName"
                   type="text"
+                  autoComplete="family-name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   onBlur={() => markTouched("lastName")}
@@ -572,11 +639,13 @@ const SignUp: FC = (): JSX.Element => {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 onBlur={() => markTouched("email")}
-                placeholder="example@email.com"
+                placeholder="example@gmail.com"
                 required
                 aria-invalid={!!fieldError("email")}
                 aria-describedby={
@@ -602,7 +671,9 @@ const SignUp: FC = (): JSX.Element => {
               <div className="relative w-full">
                 <input
                   id="phoneNumber"
+                  name="phoneNumber"
                   type="tel"
+                  autoComplete="tel-national"
                   value={phoneDisplay}
                   onChange={handlePhoneChange}
                   onBlur={() => markTouched("phoneNumber")}
@@ -626,7 +697,6 @@ const SignUp: FC = (): JSX.Element => {
                 </p>
               )}
             </div>
-
             {/* Password */}
             <div className="flex flex-col gap-2 w-full mt-3">
               <label
@@ -638,9 +708,12 @@ const SignUp: FC = (): JSX.Element => {
               <div className="relative w-full">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  ref={passwordRef}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   onBlur={() => markTouched("password")}
                   maxLength={72}
                   aria-invalid={!!fieldError("password")}
@@ -664,7 +737,7 @@ const SignUp: FC = (): JSX.Element => {
                 }`}
               >
                 {fieldError("password") ??
-                  "8-72 characters, with a lowercase letter, an uppercase letter, and a number"}
+                  "8-72 characters, with a lowercase letter, an uppercase letter, a number, and no periods (.)"}
               </p>
             </div>
 
@@ -679,11 +752,13 @@ const SignUp: FC = (): JSX.Element => {
               <div className="relative w-full">
                 <input
                   id="confirmPassword"
+                  name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  ref={confirmPasswordRef}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={handleConfirmPasswordChange}
                   onBlur={() => markTouched("confirmPassword")}
-                  maxLength={72}
                   aria-invalid={!!fieldError("confirmPassword")}
                   aria-describedby={
                     fieldError("confirmPassword") ? "confirm-error" : undefined
@@ -728,12 +803,18 @@ const SignUp: FC = (): JSX.Element => {
               )}
               {loading ? "Creating account..." : "Sign Up"}
             </button>
+            {loading && slowRequestHint && (
+              <p className="text-[12px] text-[#757575] text-center mt-2">
+                Still working — the server may be starting up, this can take up
+                to a minute.
+              </p>
+            )}
           </form>
         )}
 
         {/* Terms */}
         <p className="text-[12px] text-[#000000] text-center mt-3 px-2">
-          By clicking "Sign Up" you certify that you agree to our{" "}
+          By clicking "Continue" you certify that you agree to our{" "}
           <span className="text-[#FF6B35] cursor-pointer">privacy policy</span>{" "}
           and{" "}
           <span className="text-[#FF6B35] cursor-pointer">
