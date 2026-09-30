@@ -2,7 +2,6 @@ import {
   useState,
   useRef,
   useEffect,
-  useCallback,
   type FC,
   type FormEvent,
   type ChangeEvent,
@@ -22,9 +21,13 @@ interface Country {
   maxDigits: number;
 }
 
+// Base URL comes from env so dev/staging/prod can point at different backends.
+// Add VITE_API_URL to your .env file; falls back to the current backend if unset.
 const API_URL =
   import.meta.env.VITE_API_URL ?? "https://linkedin-guy-backend.onrender.com";
 
+// All flags served the same way (flagcdn) for consistency — no mixed
+// local-import/remote-URL sources.
 const countries: Country[] = [
   {
     code: "+234",
@@ -78,6 +81,7 @@ const countries: Country[] = [
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** Formats a string of raw digits according to an "X" placeholder pattern. */
 const applyFormat = (digits: string, pattern: string): string => {
   let formatted = "";
   let digitIndex = 0;
@@ -105,6 +109,7 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
+// --- Country dropdown, split out for readability and keyboard support ---
 interface CountryDropdownProps {
   countries: Country[];
   selected: Country;
@@ -228,6 +233,8 @@ const SignUp: FC = (): JSX.Element => {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  // Store raw digits only; format for display is derived. This fixes the bug
+  // where switching country re-formatted an already-formatted string.
   const [phoneDigits, setPhoneDigits] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -243,6 +250,8 @@ const SignUp: FC = (): JSX.Element => {
 
   const navigate = useNavigate();
 
+  // Clear the pending redirect if the component unmounts before it fires
+  // (e.g. the user navigates away manually during the countdown).
   useEffect(() => {
     return () => {
       if (redirectTimeoutRef.current) {
@@ -268,11 +277,12 @@ const SignUp: FC = (): JSX.Element => {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
+    // Re-format against the same underlying digits, not the display string —
+    // no double-formatting, no drift.
     setPhoneDigits((prev) => prev.slice(0, country.maxDigits));
   };
 
-  // Wrapped in useCallback so that live validation always receives the current state
-  const validate = useCallback((): FormErrors => {
+  const validate = (): FormErrors => {
     const next: FormErrors = {};
 
     if (!firstName.trim()) next.firstName = "First name is required.";
@@ -309,6 +319,13 @@ const SignUp: FC = (): JSX.Element => {
     }
 
     return next;
+  };
+
+  // Live-validate only fields the user has already interacted with, so
+  // errors don't appear before someone has had a chance to type.
+  useEffect(() => {
+    setErrors(validate());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     firstName,
     lastName,
@@ -316,12 +333,8 @@ const SignUp: FC = (): JSX.Element => {
     phoneDigits,
     password,
     confirmPassword,
-    selectedCountry.maxDigits,
+    selectedCountry,
   ]);
-
-  useEffect(() => {
-    setErrors(validate());
-  }, [validate]);
 
   const isFormValid = Object.keys(validate()).length === 0;
 
@@ -353,13 +366,23 @@ const SignUp: FC = (): JSX.Element => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          // Backend expects a single "name" field and "phone" (not
+          // "phoneNumber") — see auth.validator.js / auth.routes.js.
           name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-          email,
+          email: email.trim(),
           phone: fullPhoneNumber,
           password,
+          // FIX: the backend validator also checks for a confirm-password
+          // field. Without it, the API replies "confirm password is
+          // required" even though the form filled it in. If your validator
+          // uses a different key (e.g. "confirm_password" or
+          // "passwordConfirm"), rename this key to match exactly.
+          confirmPassword,
         }),
       });
 
+      // Parse JSON defensively — a non-JSON error response (e.g. a 502 HTML
+      // page) shouldn't throw an unhandled exception here.
       let data: any = null;
       try {
         data = await response.json();
@@ -386,11 +409,18 @@ const SignUp: FC = (): JSX.Element => {
         );
       }
 
+      // NOTE: storing the auth token in localStorage is vulnerable to XSS
+      // token theft. The correct long-term fix is for the backend to set an
+      // httpOnly, Secure cookie on this response instead of returning the
+      // token in the JSON body — that can't be done from the client alone.
+      // Keeping this as a stopgap until the backend supports that.
+      // Confirmed shape from auth.service.js: { success, message, data: { user, token } }.
       const token = data?.data?.token;
       if (token) {
         localStorage.setItem("authToken", token);
       }
 
+      // Show a confirmation message, then send them to the next step.
       setSignupSuccess(true);
       redirectTimeoutRef.current = setTimeout(() => {
         navigate("/verify");
@@ -443,7 +473,7 @@ const SignUp: FC = (): JSX.Element => {
           </div>
         )}
 
-        {/* Success State */}
+        {/* Success state — shown after a successful signup, then auto-redirects */}
         {signupSuccess && (
           <div
             role="status"
@@ -457,8 +487,7 @@ const SignUp: FC = (): JSX.Element => {
               Account created successfully!
             </p>
             <p className="text-green-700 text-[13px]">
-              Please sign in using the same email and password you just created.
-              Taking you to the sign-in page…
+              Taking you to the next step…
             </p>
           </div>
         )}
@@ -582,7 +611,7 @@ const SignUp: FC = (): JSX.Element => {
                   aria-describedby={
                     fieldError("phoneNumber") ? "phone-error" : undefined
                   }
-                  className={inputClass("phoneNumber", "pl-24 pr-4")}
+                  className={inputClass("phoneNumber", "pl-24  pr-4")}
                 />
 
                 <CountryDropdown
@@ -654,6 +683,7 @@ const SignUp: FC = (): JSX.Element => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => markTouched("confirmPassword")}
+                  maxLength={72}
                   aria-invalid={!!fieldError("confirmPassword")}
                   aria-describedby={
                     fieldError("confirmPassword") ? "confirm-error" : undefined
@@ -679,7 +709,7 @@ const SignUp: FC = (): JSX.Element => {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button — inline spinner instead of replacing the whole page */}
             <button
               type="submit"
               disabled={loading || !isFormValid}
@@ -703,7 +733,7 @@ const SignUp: FC = (): JSX.Element => {
 
         {/* Terms */}
         <p className="text-[12px] text-[#000000] text-center mt-3 px-2">
-          By clicking "Continue" you certify that you agree to our{" "}
+          By clicking "Sign Up" you certify that you agree to our{" "}
           <span className="text-[#FF6B35] cursor-pointer">privacy policy</span>{" "}
           and{" "}
           <span className="text-[#FF6B35] cursor-pointer">
